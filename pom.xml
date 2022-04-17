@@ -22,6 +22,8 @@
         <module>order</module>
         <module>ware</module>
         <module>product</module>
+        <module>member</module>
+        <module>coupon</module>
     </modules>
 
     <build>
