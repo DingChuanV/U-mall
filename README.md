@@ -1,10 +1,10 @@
-# U-mall商城
-
-正在补充。。
+# Mall商城
 
 ## 项目简介
 
 正在补充。。。
+
+
 
 ## 模块化分
 
@@ -21,6 +21,18 @@ root@uin-virtual-machine:/# uname -a
 Linux uin-virtual-machine 5.11.0-38-generic #42~20.04.1-Ubuntu SMP Tue Sep 28 16:01:15 UTC 2021 aarch64 aarch64 aarch64 GNU/Linux
 root@uin-virtual-machine:/# 
 ````
+
+增加一个小tip：配置静态IP，配了都说好。
+
+
+
+![image-20220417225156497](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204182013911.png)
+
+![image-20220417223147088](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204182013604.png)
+
+Gateway 网关地址 10.211.55.1、Iface网卡 eth0、netmask子网掩码 255.255.255.0、当前IP 10.211.55.15
+
+[为Ubuntu 20.04 设置静态IP简明教程（和把大象装冰箱一样简单） - 云+社区 - 腾讯云 (tencent.com)](https://cloud.tencent.com/developer/article/1933335)
 
 ### docker
 
@@ -150,6 +162,25 @@ git clone https://gitee.com/renrenio/renren-fast.git
 ```bash
 git clone https://gitee.com/renrenio/renren-fast-vue.git
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
