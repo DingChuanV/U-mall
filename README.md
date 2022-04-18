@@ -6,6 +6,12 @@
 
 正在补充。。。
 
+## 模块化分
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180832801.png" alt="image-20220418083220804" style="zoom:50%;" />
+
+后续的分布式模块正补充....
+
 ## 环境搭建
 
 本地环境：
