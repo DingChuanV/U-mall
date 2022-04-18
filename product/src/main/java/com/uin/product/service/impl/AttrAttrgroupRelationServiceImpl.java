@@ -23,7 +23,6 @@ public class AttrAttrgroupRelationServiceImpl extends ServiceImpl<AttrAttrgroupR
                 new Query<AttrAttrgroupRelationEntity>().getPage(params),
                 new QueryWrapper<AttrAttrgroupRelationEntity>()
         );
-
         return new PageUtils(page);
     }
 
