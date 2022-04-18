@@ -4,9 +4,7 @@
 
 ## 项目简介
 
-正在补充。。
-
-
+正在补充。。。
 
 ## 环境搭建
 
@@ -24,13 +22,13 @@ dokcer在mac本地安装是很简单的事情，比如用homebrew。
 
 ubuntu安装docker。
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417144636865.png" alt="image-20220417144636865" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180816948.png" alt="image-20220417144636865" style="zoom:50%;" />
 
 [ubuntu 18.04 arm64版 安装docker 踩坑_踩坑的小方的博客-CSDN博客_arm ubuntu安装docker](https://blog.csdn.net/qiangrenpu8881/article/details/104863690)
 
 在此感谢博主！！。
 
-![image-20220417150136634](/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417150136634.png)
+![image-20220417150136634](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180817260.png)
 
 [ubuntu中设置docker以及容器开机自启 - 代码先锋网 (codeleading.com)](https://www.codeleading.com/article/58746255343/)
 
@@ -53,7 +51,7 @@ docker run -p 6379:6379 --name redis -v /mydata/redis/data:/data -v /mydata/redi
 
 [使用docker安装redis并持久化_马克图布No1的博客-CSDN博客_docker redis 持久化](https://blog.csdn.net/weixin_40271376/article/details/108810375)
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417153916157.png" alt="image-20220417153916157" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180817404.png" alt="image-20220417153916157" style="zoom:50%;" />
 
 ### docker安装Mysql
 
@@ -63,9 +61,9 @@ docker run -p 6379:6379 --name redis -v /mydata/redis/data:/data -v /mydata/redi
 docker pull mysql/mysql-server:latest
 ```
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417134052004.png" alt="image-20220417134052004" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180817695.png" alt="image-20220417134052004" style="zoom:50%;" />
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417134449733.png" alt="image-20220417134449733" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180817628.png" alt="image-20220417134449733" style="zoom:50%;" />
 
 **创建并启动MySQL服务容器**
 
@@ -107,17 +105,17 @@ mysql> ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
 mysql> flush privileges;
 ```
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417135534346.png" alt="image-20220417135534346" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180817262.png" alt="image-20220417135534346" style="zoom:50%;" />
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417140901713.png" alt="image-20220417140901713" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180818660.png" alt="image-20220417140901713" style="zoom:50%;" />
 
 **Ubuntu docker安装Mysql**
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417150703705.png" alt="image-20220417150703705" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180818428.png" alt="image-20220417150703705" style="zoom:50%;" />
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417150942898.png" alt="image-20220417150942898" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180818231.png" alt="image-20220417150942898" style="zoom:50%;" />
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417151127579.png" alt="image-20220417151127579" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180818346.png" alt="image-20220417151127579" style="zoom:50%;" />
 
 ## 项目搭建
 
@@ -127,11 +125,11 @@ mysql> flush privileges;
 
 SpringClound Alibaba 组件的版本。
 
-![image-20220417180959128](/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417180959128.png)
+![image-20220417180959128](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180818277.png)
 
 SpringCloud的版本。
 
-<img src="/Users/wanglufei/Library/Application Support/typora-user-images/image-20220417181119503.png" alt="image-20220417181119503" style="zoom:50%;" />
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180818564.png" alt="image-20220417181119503" style="zoom:50%;" />
 
 ## 使用快速开发平台renren-fast
 
@@ -146,6 +144,9 @@ git clone https://gitee.com/renrenio/renren-fast.git
 ```bash
 git clone https://gitee.com/renrenio/renren-fast-vue.git
 ```
+
+
+
 
 
 
