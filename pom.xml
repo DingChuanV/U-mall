@@ -24,6 +24,9 @@
         <module>product</module>
         <module>member</module>
         <module>coupon</module>
+        <module>renren-fast</module>
+        <module>renren-generator</module>
+        <module>common</module>
     </modules>
 
     <build>
