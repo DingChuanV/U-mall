@@ -7,11 +7,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="member" />
         <module name="product" />
-        <module name="renren-fast" />
+        <module name="coupon" />
         <module name="common" />
+        <module name="member" />
+        <module name="renren-fast" />
+        <module name="ware" />
         <module name="renren-generator" />
+        <module name="order" />
       </profile>
     </annotationProcessing>
   </component>

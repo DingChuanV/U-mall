@@ -12,6 +12,7 @@
     <groupId>com.uin</groupId>
     <artifactId>product</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+
     <name>product</name>
     <description>商品服务</description>
     <properties>
