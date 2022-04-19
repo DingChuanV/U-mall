@@ -163,29 +163,87 @@ git clone https://gitee.com/renrenio/renren-fast.git
 git clone https://gitee.com/renrenio/renren-fast-vue.git
 ```
 
+## 各模块的端口规定
+
+商品服务   product      8081
+
+仓储服务   ware   		8082
+
+订单服务 	order 		8083
+
+优惠券服务	coupon 	8084
+
+会员服务 	member		8085
+
+## 搭建分布式的基本环境
+
+**架构图**
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191012364.png" alt="image-20220419101222812" style="zoom:50%;" />
+
+## 技术选型
+
+![image-20220419102214121](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191025754.png)
+
+其他的组件详情：[微服务相关组件 - BeaBrick0 - 博客园 (cnblogs.com)](https://www.cnblogs.com/bearbrick0/p/15781897.html)
+
+## 版本选择
+
+https://github.com/alibaba/spring-cloud-alibaba
+
+https://github.com/alibaba/spring-cloud-alibaba/blob/2021.x/README-zh.md
+
+![image-20220419102434215](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191024255.png)
+
+![image-20220419102450019](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191024385.png)
+
+## 使用Spring cloud Alibaba Nacos做配置中心和注册中心
+
+![image-20220419105411070](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191054042.png)
+
+Nacos 注册中心（服务发现/注册）
+
+Nacos 配置中心（动态配置管理）
+
+https://github.com/alibaba/Nacos
+
+![image-20220419105940889](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191059158.png)
+
+之前我们使用Spring Cloud Eurek 来做，但是后来停止维护了。
+
+## 使用Spring Cloud OpenFeign 作远程调用（声明式的HTTP客户端）
+
+https://spring.io/projects/spring-cloud-openfeign
+
+![image-20220419105505687](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191055118.png)
+
+## 使用Spring Cloud Alibaba Sentinel 服务容错（限流、熔断、降级）
+
+之前使用的Spring Cloud Netflix  Hystrix来做服务降级、服务熔断
+
+https://github.com/alibaba/Sentinel
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191058294.png" alt="image-20220419105741226" style="zoom:50%;" />
+
+## 使用Spring Cloud Gateway 做ApI网关（webFlux编程）
+
+详细配置介绍：https://spring.io/projects/spring-cloud-gateway
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191048158.png" alt="image-20220419104848527" style="zoom:50%;" />
 
 
 
+## 使用Spring Cloud Sleuth 来做调用链的监控
 
+https://spring.io/projects/spring-cloud-sleuth
 
+![image-20220419105208463](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191052608.png)
 
+## 使用Spring Cloud Alibaba Seata来做分布式事务的解决方案
 
+https://github.com/seata/seata
 
+![image-20220419105326003](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191104519.png)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![image-20220419105643264](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191056740.png)
 
