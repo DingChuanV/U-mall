@@ -235,11 +235,11 @@ demo链接：https://github.com/alibaba/spring-cloud-alibaba/blob/2021.x/spring-
 由于我们还没有Nacos服务，所以我们要去下载。
 
 1. 首先需要获取 Nacos Server，支持直接下载和源码构建两种方式。
-    1. 直接下载：[Nacos Server 下载页](https://github.com/alibaba/nacos/releases)
-    2. 源码构建：进入 Nacos [Github 项目页面](https://github.com/alibaba/nacos)，将代码 git clone 到本地自行编译打包，[参考此文档](https://nacos.io/zh-cn/docs/quick-start.html)。**推荐使用源码构建方式以获取最新版本**
+   1. 直接下载：[Nacos Server 下载页](https://github.com/alibaba/nacos/releases)
+   2. 源码构建：进入 Nacos [Github 项目页面](https://github.com/alibaba/nacos)，将代码 git clone 到本地自行编译打包，[参考此文档](https://nacos.io/zh-cn/docs/quick-start.html)。**推荐使用源码构建方式以获取最新版本**
 2. 启动 Server，进入解压后文件夹或编译打包好的文件夹，找到如下相对文件夹 nacos/bin，并对照操作系统实际情况之下如下命令。
-    1. Linux/Unix/Mac 操作系统，执行命令 `sh startup.sh -m standalone`
-    2. Windows 操作系统，执行命令 `cmd startup.cmd`
+   1. Linux/Unix/Mac 操作系统，执行命令 `sh startup.sh -m standalone`
+   2. Windows 操作系统，执行命令 `cmd startup.cmd`
 
 <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191125323.png" alt="image-20220419112512891" style="zoom:50%;" />
 
@@ -295,8 +295,8 @@ demo链接：https://github.com/alibaba/spring-cloud-alibaba/blob/2021.x/spring-
 
 2. 启动应用，支持 IDE 直接启动和编译打包后启动。
 
-    1. IDE直接启动：找到 nacos-discovery-provider-example 项目的主类 `ProviderApplication`，执行 main 方法启动应用。
-    2. 打包编译后启动：在 nacos-discovery-provider-example 项目中执行 `mvn clean package` 将工程编译打包，然后执行 `java -jar nacos-discovery-provider-example.jar`启动应用。
+   1. IDE直接启动：找到 nacos-discovery-provider-example 项目的主类 `ProviderApplication`，执行 main 方法启动应用。
+   2. 打包编译后启动：在 nacos-discovery-provider-example 项目中执行 `mvn clean package` 将工程编译打包，然后执行 `java -jar nacos-discovery-provider-example.jar`启动应用。
 
 ![](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191148102.png)
 
@@ -342,11 +342,15 @@ https://github.com/alibaba/spring-cloud-alibaba/blob/2021.x/spring-cloud-alibaba
 
 显然改项目中的配置，是不理智的。我们只需要将我们的配置交给配置中心，我们直接在配置中心改配置文件
 
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191930491.png" alt="image-20220419193011854" style="zoom:50%;" />
+
 我们可以在Nacos的配置中心进行配置。
 
 <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191925351.png" alt="image-20220419192233525" style="zoom: 33%;" />
 
-如果配置不成功，可以加一下识别bootStrap.properties的依赖。
+**如果配置中心和当前项的配置文件都配置了相同的项，优先使用配置中心的配置。**
+
+**如果配置不成功，可以加一下识别bootStrap.properties的依赖。**
 
 ```xml
 <!--针对配置不成功的依赖-->
@@ -356,11 +360,107 @@ https://github.com/alibaba/spring-cloud-alibaba/blob/2021.x/spring-cloud-alibaba
 </dependency>
 ```
 
-
-
 ![image-20220419192445948](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191924835.png)
 
 测试成功。
+
+#### 更多的细节
+
+##### 命名空间
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191937464.png" alt="image-20220419193748602" style="zoom:50%;" />
+
+用于进行租户粒度的**配置隔离**。不同的命名空间下，可以存相同的 Group 或 Data ID的配置。Namespace 的常用场景之一是不同的环境的配置的区分隔离，例如开发测试环境和生产环境（如配置、服务）隔离等。
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191940413.png" alt="image-20220419194007136" style="zoom:50%;" />
+
+![image-20220419194450139](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191944536.png)
+
+![image-20220419194541509](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191945748.png)
+
+利用命名空间做环境隔离。
+
+**基于微服务之间互相隔离配置，每一个微服务都创建自己的命名空间，只加载自己的命名空间。**
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191948318.png" alt="image-20220419194829355" style="zoom:50%;" />
+
+##### 配置集
+
+一组相关或者不想关的配置项的集合称为配置集。本系统中，一个配置文件通常就是一个配置集，包含了系统各个方面的配置。例如，一个配置集可能包含了数据源、线程池、日志级别的配置项。
+
+##### 配置集ID
+
+类似于文件名。
+
+![image-20220419195323816](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191953156.png)
+
+##### 配置分组
+
+默认所有的配置集都属于：DEFAULT_GROUP
+
+比如叫双11、618、双12.
+
+```properties
+#更改默认组
+spring.cloud.nacos.config.group=1111
+```
+
+**在本项目中采用每个微服务创建自己的命名空间，使用配置分组区分环境，比如dev、test、prod环境**。
+
+**怎么去同时加载多个配置文件？**
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204192012755.png" alt="image-20220419201222925" style="zoom:50%;" />
+
+```properties
+spring.application.name=coupon
+spring.cloud.nacos.config.server-addr=127.0.0.1:8848
+spring.cloud.nacos.config.namespace=f00c6f6d-ccad-4762-8599-f09604d2915f
+spring.cloud.nacos.config.group=prod
+
+#---------------相当于加载了一个datasource.yml配置文件----tart-----
+spring.cloud.nacos.config.extension-configs[0].data-id=datasource.yml
+#那个组 dev
+spring.cloud.nacos.config.extension-configs[0].group=dev
+#动态刷新
+spring.cloud.nacos.config.extension-configs[0].refresh=true
+#---------------相当于加载了一个配置文件----end-----
+
+#---------------相当于加载了一个mybatis.yml配置文件----tart-----
+spring.cloud.nacos.config.extension-configs[1].data-id=mybatis.yml
+#那个组 dev
+spring.cloud.nacos.config.extension-configs[1].group=dev
+#动态刷新
+spring.cloud.nacos.config.extension-configs[1].refresh=true
+#---------------相当于加载了一个配置文件----end-----
+
+#---------------相当于加载了一个other.yml配置文件----tart-----
+spring.cloud.nacos.config.extension-configs[2].data-id=other.yml
+#那个组 dev
+spring.cloud.nacos.config.extension-configs[2].group=dev
+#动态刷新
+spring.cloud.nacos.config.extension-configs[2].refresh=true
+#---------------相当于加载了一个配置文件----end-----
+```
+
+当然是注释掉了，application.yml 中的配置文件。
+
+![](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204192026244.png)
+
+![image-20220419202723264](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204192027668.png)
+
+![image-20220419202812563](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204192028392.png)
+
+##### 总结
+
+**我们以后给微服务配置任何信息，都可以在配置中心去配置，只需要在 bootstrap.properties 中声明加载那些配置文件。**
+
+**配置中心有的优先使用配置中心的。**
+
+### 关于nacos的更多的信息
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204192033520.png" alt="image-20220419203353721" style="zoom:50%;" />
+
+https://nacos.io/zh-cn/docs/what-is-nacos.html
 
 ## 使用Spring Cloud OpenFeign 作远程调用（声明式的HTTP客户端）
 
@@ -405,15 +505,15 @@ public class WebApplication {
 
 1. 想要远程调用其他的服务
 
-    1. 引入openfeign的依赖，让他拥有远程调用的能力
+   1. 引入openfeign的依赖，让他拥有远程调用的能力
 
-    2. 编写一个接口，告诉SpringCloud这个接口需要远程调用远程服务
+   2. 编写一个接口，告诉SpringCloud这个接口需要远程调用远程服务
 
-        1. 声明的接口的每一个方法都是调用那个远程服务的那一个请求
+      1. 声明的接口的每一个方法都是调用那个远程服务的那一个请求
 
-       <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191456281.png" alt="image-20220419145629061" style="zoom: 33%;" />
+      <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191456281.png" alt="image-20220419145629061" style="zoom: 33%;" />
 
-    3. 开启远程调用服务的功能 `@EnableFeignClients(basePackages = "com.uin.member.feign")`
+   3. 开启远程调用服务的功能 `@EnableFeignClients(basePackages = "com.uin.member.feign")`
 
 <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191457431.png" alt="image-20220419145716360" style="zoom: 33%;" />
 
@@ -446,6 +546,15 @@ https://github.com/alibaba/Sentinel
 详细配置介绍：https://spring.io/projects/spring-cloud-gateway
 
 <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191048158.png" alt="image-20220419104848527" style="zoom:50%;" />
+
+### 操作流程
+
+1. 完善对应的版本信息
+2. 要使用网关，需要开起API网关的服务与发现，这样请求可以通过我们的网关，网关可以发现其他的服务，并将请求转发到其他的服务。
+
+https://spring.io/guides/gs/gateway/
+
+https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/
 
 
 
