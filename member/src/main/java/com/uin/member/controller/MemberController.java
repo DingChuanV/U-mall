@@ -2,6 +2,7 @@ package com.uin.member.controller;
 
 
 import com.uin.member.entity.MemberEntity;
+import com.uin.member.feign.MemberFeignCoupon;
 import com.uin.member.service.MemberService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
@@ -23,6 +24,23 @@ import java.util.Map;
 public class MemberController {
     @Autowired
     private MemberService memberService;
+    @Autowired
+    private MemberFeignCoupon memberFeignCoupon;
+
+    /**
+     * 测试远程服务调用
+     *
+     * @return com.uin.utils.R
+     * @author wanglufei
+     * @date 2022/4/19 2:35 PM
+     */
+    @RequestMapping("/coupons")
+    private R coupons() {
+        MemberEntity member = new MemberEntity();
+        member.setNickname("张三");
+        R r = memberFeignCoupon.memberWithCoupons();
+        return R.ok().put("member", member).put("coupon", r.get("coupons"));
+    }
 
     /**
      * 列表
@@ -31,7 +49,7 @@ public class MemberController {
     /**
      *@RequiresPermissions("member:member:list")
      */
-    public R list(@RequestParam Map<String, Object> params){
+    public R list(@RequestParam Map<String, Object> params) {
         PageUtils page = memberService.queryPage(params);
 
         return R.ok().put("page", page);
@@ -45,8 +63,8 @@ public class MemberController {
     /**
      *@RequiresPermissions("member:member:info")
      */
-    public R info(@PathVariable("id") Long id){
-		MemberEntity member = memberService.getById(id);
+    public R info(@PathVariable("id") Long id) {
+        MemberEntity member = memberService.getById(id);
 
         return R.ok().put("member", member);
     }
@@ -58,8 +76,8 @@ public class MemberController {
     /**
      *@RequiresPermissions("member:member:save")
      */
-    public R save(@RequestBody MemberEntity member){
-		memberService.save(member);
+    public R save(@RequestBody MemberEntity member) {
+        memberService.save(member);
 
         return R.ok();
     }
@@ -71,8 +89,8 @@ public class MemberController {
     /**
      *@RequiresPermissions("member:member:update")
      */
-    public R update(@RequestBody MemberEntity member){
-		memberService.updateById(member);
+    public R update(@RequestBody MemberEntity member) {
+        memberService.updateById(member);
 
         return R.ok();
     }
@@ -84,8 +102,8 @@ public class MemberController {
     /**
      *@RequiresPermissions("member:member:delete")
      */
-    public R delete(@RequestBody Long[] ids){
-		memberService.removeByIds(Arrays.asList(ids));
+    public R delete(@RequestBody Long[] ids) {
+        memberService.removeByIds(Arrays.asList(ids));
 
         return R.ok();
     }

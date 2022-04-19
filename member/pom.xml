@@ -36,6 +36,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
+        <!--No Feign Client for loadBalancing defined. Did you forget to include spring-cloud-starter-loadbalancer?-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
