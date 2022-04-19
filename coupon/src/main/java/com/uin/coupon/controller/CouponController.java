@@ -10,6 +10,7 @@ import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -23,15 +24,16 @@ import java.util.Map;
  * @date 2022-04-18 19:19:09
  */
 @RestController
+@RefreshScope
 @RequestMapping("coupon/coupon")
 public class CouponController {
 
     @Autowired
     private CouponService couponService;
     @Value("${coupon.user.name}")
-    private String name;
+     String name;
     @Value("${coupon.user.age}")
-    private Integer age;
+     Integer age;
     @RequestMapping("/test")
     public R test(){
         return R.ok().put("name",name).put("age",age);
