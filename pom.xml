@@ -28,5 +28,6 @@
         <module>renren-generator</module>
         <module>common</module>
         <module>gateway</module>
+        <module>thirdPaty</module>
     </modules>
 </project>

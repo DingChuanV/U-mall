@@ -10,6 +10,7 @@
         <module name="product" />
         <module name="coupon" />
         <module name="common" />
+        <module name="thirdPaty" />
         <module name="member" />
         <module name="renren-fast" />
         <module name="ware" />
@@ -28,6 +29,7 @@
       <module name="product" options="-parameters" />
       <module name="renren-fast" options="-parameters" />
       <module name="renren-generator" options="-parameters" />
+      <module name="thirdPaty" options="-parameters" />
       <module name="ware" options="-parameters" />
     </option>
   </component>
