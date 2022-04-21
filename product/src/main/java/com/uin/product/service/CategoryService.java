@@ -26,5 +26,7 @@ public interface CategoryService extends IService<CategoryEntity> {
      * @date 2022/4/20 4:04 PM
      */
     List<CategoryEntity> listWithTree();
+
+    void removeMenuByIds(List<Long> asList);
 }
 
