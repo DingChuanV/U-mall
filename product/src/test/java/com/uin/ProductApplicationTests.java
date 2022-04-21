@@ -22,6 +22,7 @@ class ProductApplicationTests {
     BrandService brandService;
 
 
+
     @Test
     public void test01() {
         BrandEntity brand = new BrandEntity();
