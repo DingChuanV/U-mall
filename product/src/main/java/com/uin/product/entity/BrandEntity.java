@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.uin.valid.AddGroup;
+import com.uin.valid.UpdateGroup;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
@@ -26,18 +28,21 @@ public class BrandEntity implements Serializable {
     /**
      * 品牌id
      */
+    @Null(message = "新增品牌brandId必须为空", groups = {AddGroup.class})
+    @NotNull(message = "修改品牌brandId不能为空", groups = {UpdateGroup.class})
     @TableId
     private Long brandId;
     /**
      * 品牌名
      * 带注释的元素不能为空，并且必须包含至少一个非空白符号。接受字符序列。
      */
-    @NotBlank(message = "品牌名不能为空")
+    @NotBlank(message = "品牌名不能为空", groups = {AddGroup.class, UpdateGroup.class})
     private String name;
     /**
      * 品牌logo地址
      */
-    @URL(message = "品牌logo地址不合法")
+    @NotEmpty(groups = {AddGroup.class})
+    @URL(message = "品牌logo地址不合法", groups = {AddGroup.class, UpdateGroup.class})
     private String logo;
     /**
      * 介绍
@@ -50,15 +55,17 @@ public class BrandEntity implements Serializable {
     /**
      * 检索首字母
      */
-    @NotEmpty
-    @Pattern(regexp = "/^[a-zA-Z]$/", message = "检索字母必须是a-z或者A-Z的字母")
+    @NotEmpty(groups = {AddGroup.class})
+    @Pattern(regexp = "/^[a-zA-Z]$/", message = "检索字母必须是a-z或者A-Z的字母", groups = {AddGroup.class,
+            UpdateGroup.class})
     private String firstLetter;
     /**
      * 排序
      * 不能为空，接受任何类型
      */
-    @NotNull
-    @Min(value = 0,message = "排序规则必须大于等于0")
+    @NotNull(groups = {AddGroup.class})
+    @Min(value = 0, message = "排序规则必须大于等于0", groups = {AddGroup.class,
+            UpdateGroup.class})
     private Integer sort;
 
 }

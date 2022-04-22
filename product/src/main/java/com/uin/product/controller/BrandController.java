@@ -6,8 +6,11 @@ import java.util.Map;
 
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
+import com.uin.valid.AddGroup;
+import com.uin.valid.UpdateGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,7 +70,7 @@ public class BrandController {
     /**
      *@RequiresPermissions("product:brand:save")
      */
-    public R save(@Valid @RequestBody BrandEntity brand) {
+    public R save(@Validated({AddGroup.class}) @RequestBody BrandEntity brand) {
         //BindingResult result
 //        if (result.hasErrors()) {
 //            Map<String, String> map = new HashMap<>();
@@ -92,7 +95,7 @@ public class BrandController {
     /**
      *@RequiresPermissions("product:brand:update")
      */
-    public R update(@RequestBody BrandEntity brand) {
+    public R update(@Validated(UpdateGroup.class)  @RequestBody BrandEntity brand) {
         brandService.updateById(brand);
 
         return R.ok();
