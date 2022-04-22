@@ -7,7 +7,9 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.uin.valid.AddGroup;
+import com.uin.valid.ListValue;
 import com.uin.valid.UpdateGroup;
+import com.uin.valid.UpdateStatusGroup;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
@@ -51,12 +53,14 @@ public class BrandEntity implements Serializable {
     /**
      * 显示状态[0-不显示；1-显示]
      */
+    @NotNull(groups = {UpdateStatusGroup.class,AddGroup.class})
+    @ListValue(valuse = {0, 1}, groups = {UpdateStatusGroup.class,AddGroup.class})
     private Integer showStatus;
     /**
      * 检索首字母
      */
     @NotEmpty(groups = {AddGroup.class})
-    @Pattern(regexp = "/^[a-zA-Z]$/", message = "检索字母必须是a-z或者A-Z的字母", groups = {AddGroup.class,
+    @Pattern(regexp = "^[a-zA-Z]$", message = "检索字母必须是a-z或者A-Z的字母", groups = {AddGroup.class,
             UpdateGroup.class})
     private String firstLetter;
     /**
