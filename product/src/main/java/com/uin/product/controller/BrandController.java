@@ -67,20 +67,21 @@ public class BrandController {
     /**
      *@RequiresPermissions("product:brand:save")
      */
-    public R save(@Valid @RequestBody BrandEntity brand, BindingResult result) {
-        if (result.hasErrors()) {
-            Map<String, String> map = new HashMap<>();
-            result.getFieldErrors().forEach((item) -> {
-                //消息提示
-                String message = item.getDefaultMessage();
-                //那个字段错误
-                String itemField = item.getField();
-                map.put(itemField, message);
-            });
-            return R.error(400, "品牌名不能为空").put("data",map);
-        } else {
-            brandService.save(brand);
-        }
+    public R save(@Valid @RequestBody BrandEntity brand) {
+        //BindingResult result
+//        if (result.hasErrors()) {
+//            Map<String, String> map = new HashMap<>();
+//            result.getFieldErrors().forEach((item) -> {
+//                //消息提示
+//                String message = item.getDefaultMessage();
+//                //那个字段错误
+//                String itemField = item.getField();
+//                map.put(itemField, message);
+//            });
+//            return R.error(400, "品牌名不能为空").put("data",map);
+//        } else {
+//        }
+        brandService.save(brand);
         return R.ok();
     }
 
