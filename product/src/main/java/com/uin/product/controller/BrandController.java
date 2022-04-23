@@ -97,8 +97,11 @@ public class BrandController {
      *@RequiresPermissions("product:brand:update")
      */
     public R update(@Validated(UpdateGroup.class)  @RequestBody BrandEntity brand) {
-        brandService.updateById(brand);
-
+        //brandService.updateById(brand);
+        //因为在我们的业务中品牌表和分类表是通过，中间表来存储（使用冗余字段来减少关联关系），但是如果我们的品牌表和分类表中的字段发生修改，就会出现中间表的数据不一致
+        //所以我们在对品牌表和分类表修改的时候，要多加一个业务步骤，
+        //不仅需要修改主表而且还有修改中间表
+        brandService.updateRelation(brand);
         return R.ok();
     }
 
