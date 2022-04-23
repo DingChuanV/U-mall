@@ -9,9 +9,12 @@ import com.uin.product.entity.CategoryEntity;
 import com.uin.product.service.CategoryService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,6 +71,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         //TODO 需要检查是否其他地方被引用
         //逻辑删除
         baseMapper.deleteBatchIds(asList);
+    }
+
+    @Override
+    public Long[] findCatcatelogPath(Long catelogId) {
+        List<Long> path = new ArrayList<>();
+        List<Long> parentPath = findParentPath(catelogId, path);
+        //换一下方向
+        Collections.reverse(parentPath);
+        return parentPath.toArray(new Long[parentPath.size()]);
+    }
+
+    //225 25 1
+    private List<Long> findParentPath(Long catelogId, List<Long> path) {
+        //先把的自己的分类id收集
+        path.add(catelogId);
+        //再去看他父亲的
+        CategoryEntity categoryEntity = this.getById(catelogId);
+        if (categoryEntity.getParentCid() != 0) {
+            findParentPath(categoryEntity.getParentCid(), path);
+        }
+        return path;
     }
 
     /**

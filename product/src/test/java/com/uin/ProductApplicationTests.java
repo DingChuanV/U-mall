@@ -3,7 +3,10 @@ package com.uin;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.uin.product.entity.BrandEntity;
+import com.uin.product.service.AttrGroupService;
 import com.uin.product.service.BrandService;
+import com.uin.product.service.CategoryService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,15 +15,20 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @SpringBootTest
+@Slf4j
 class ProductApplicationTests {
     @Autowired(required = false)
     BrandService brandService;
-
+    @Autowired
+    AttrGroupService attrGroupService;
+    @Autowired
+    CategoryService categoryService;
 
 
     @Test
@@ -44,10 +52,13 @@ class ProductApplicationTests {
         });
         System.out.println(list);
     }
-    /**
-     * 测试OSS
-     * @author wanglufei
-     * @date 2022/4/21 8:33 PM
-     */
+
+    @Test
+    public void test03() {
+        Long[] catcatelogPath = categoryService.findCatcatelogPath(225L);
+        log.info("完整的路径：{}", Arrays.asList(catcatelogPath));
+
+    }
+
 
 }

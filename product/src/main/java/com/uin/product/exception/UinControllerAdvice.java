@@ -51,7 +51,7 @@ public class UinControllerAdvice {
 
     @ExceptionHandler(value = Throwable.class)
     public R maxHandlerException(Throwable e) {
-        log.error("异常{},", e);
+        log.error("异常{ }", e);
         return R.error(UinException.UNKOWN_EXCEPTION.getCode(), UinException.UNKOWN_EXCEPTION.getMessage());
     }
 
