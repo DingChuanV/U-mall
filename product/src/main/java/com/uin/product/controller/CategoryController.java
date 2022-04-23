@@ -90,8 +90,9 @@ public class CategoryController {
      *@RequiresPermissions("product:category:update")
      */
     public R update(@RequestBody CategoryEntity category) {
-        categoryService.updateById(category);
-
+        //categoryService.updateById(category);
+        //继续擦屁股
+        categoryService.updateRelationCatgory(category);
         return R.ok();
     }
 

@@ -4,14 +4,18 @@ package com.uin.product.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.uin.product.dao.CategoryBrandRelationDao;
 import com.uin.product.dao.CategoryDao;
 import com.uin.product.entity.CategoryEntity;
+import com.uin.product.service.CategoryBrandRelationService;
 import com.uin.product.service.CategoryService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +27,9 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
 //    @Autowired
 //    CategoryDao categoryDao;
+
+    @Autowired
+    CategoryBrandRelationService categoryBrandRelationService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -80,6 +87,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         //换一下方向
         Collections.reverse(parentPath);
         return parentPath.toArray(new Long[parentPath.size()]);
+    }
+    @Transactional
+    @Override
+    public void updateRelationCatgory(CategoryEntity category) {
+        //更新自己
+        this.updateById(category);
+        Long catId = category.getCatId();
+        String name = category.getName();
+        categoryBrandRelationService.updateCategory(catId,name);
     }
 
     //225 25 1

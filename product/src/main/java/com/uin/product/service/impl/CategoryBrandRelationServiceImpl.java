@@ -1,5 +1,6 @@
 package com.uin.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.uin.product.dao.BrandDao;
 import com.uin.product.dao.CategoryDao;
 import com.uin.product.entity.BrandEntity;
@@ -54,5 +55,26 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
         //保存
         this.save(categoryBrandRelation);
     }
+
+    @Override
+    public void updateRelationBrand(Long brandId, String name) {
+        CategoryBrandRelationEntity relationEntity = new CategoryBrandRelationEntity();
+        relationEntity.setBrandId(brandId);
+        relationEntity.setBrandName(name);
+        this.update(relationEntity, new UpdateWrapper<CategoryBrandRelationEntity>().eq("brand_id", brandId));
+    }
+
+    @Override
+    public void updateCategory(Long catId, String name) {
+        //自定义语句
+//        CategoryBrandRelationEntity relationEntity = new CategoryBrandRelationEntity();
+//        relationEntity.setCatelogId(catId);
+//        relationEntity.setCatelogName(name);
+//        this.update(relationEntity, new UpdateWrapper<CategoryBrandRelationEntity>().eq(
+//                "catelog_id", catId));
+        //sql
+        this.baseMapper.updateCategory(catId, name);
+    }
+
 
 }
