@@ -4,6 +4,38 @@
 
 正在补充。。。
 
+## 接口文档
+
+https://easydoc.net/s/78237135/ZUqEdvA4/d3EezLdO
+
+## 电商项目的基础
+
+### SPU和SKU
+
+**SPU**：`Standerd Product  Unit`（标准化产品单元）是商品信息聚合的最小单位，是一组可复用、易检索的标准化信息的集合，该集合描述了一个产品的特性。
+
+**SKU**：`Stock keeping  Unit`（库存单位），即库存进出的计量单位，可以是件、盒、托盘等为单位。SKU 这是对于大型连锁超市DC（配送中戏）物流管理的一个必要的方法。现在已经被引申为统一编号的简称，每中产品均对应有唯一的SKU号。
+
+例如：iPhone XS MAX是SPU，IPhone XS MAX 128G 黑色是SKU.
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204221744259.png" alt="image-20220422174404535" style="zoom:50%;" />
+
+### 规格参数【基本参数】和销售属性
+
+每个分类下的商品共享规格参数，与销售属性。
+
+只是有些商品不一定要用这个分类下全部的属性。
+
+- 属性是以三级分类组织起来的
+- 规格参数重有些是可以提供检索的
+- 规格参数也是基本属性，他们具有自己的分组
+- 属性的分组也是以三级分类组织起来的
+- 属性名确定的，但是值是每一个商品不同来决定的
+
+SPU来决定规格参数的值，SKU来决定销售属性的值。
+
+## 数据库表的设计
+
 
 
 ## 模块化分
@@ -23,8 +55,6 @@ root@uin-virtual-machine:/#
 ````
 
 增加一个小tip：配置静态IP，配了都说好。
-
-
 
 ![image-20220417225156497](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204182013911.png)
 
@@ -571,3 +601,230 @@ https://github.com/seata/seata
 ![image-20220419105326003](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191104519.png)
 
 ![image-20220419105643264](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191056740.png)
+
+## 使用Spring Cloud Alibaba-OSS来做文件上传
+
+**上传方案选择：服务端签名后直传**
+
+![image-20220421201402398](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204212014493.png)
+
+上传之前先找我们的服务器，要一个防伪签名，拿着防伪签名，去访问oss。
+
+[Java (aliyun.com)](https://help.aliyun.com/document_detail/32007.html)
+
+[服务端签名后直传 (aliyun.com)](https://help.aliyun.com/document_detail/31926.html)
+
+本文主要介绍如何基于Post Policy的使用规则在服务端通过各种语言代码完成签名，然后通过表单直传数据到OSS。由于服务端签名直传无需将AccessKey暴露在前端页面，相比JavaScript客户端签名直传具有更高的安全性。
+
+![image-20220422081540921](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204220815033.png)
+
+[Java (aliyun.com)](https://help.aliyun.com/document_detail/91868.htm?spm=a2c4g.11186623.0.0.16075d3fNC6Cvu#concept-ahk-rfz-2fb)
+
+### 应用服务器核心代码解析
+
+应用服务器源码包含了签名直传服务以及上传回调服务的完整示例代码。
+
+**注意** 以下仅提供核心代码片段，如需了解这两个功能的完整实现，请参见[应用服务器源码（Java版本）](https://gosspublic.alicdn.com/doc/91868/aliyun-oss-appserver-java-master.zip)。
+
+- 签名直传服务
+
+  签名直传服务响应客户端发送给应用服务器的GET消息，代码片段如下：
+
+  ```java
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
+  
+          // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
+         String accessId = "yourAccessKeyId";      
+         String accessKey = "yourAccessKeySecret"; 
+         // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
+         String endpoint = "oss-cn-hangzhou.aliyuncs.com"; 
+         // 填写Bucket名称，例如examplebucket。
+         String bucket = "examplebucket"; 
+         // 填写Host名称，格式为https://bucketname.endpoint。                   
+         String host = "https://examplebucket.oss-cn-hangzhou.aliyuncs.com"; 
+         // 设置上传回调URL，即回调服务器地址，用于处理应用服务器与OSS之间的通信。OSS会在文件上传完成后，把文件上传信息通过此回调URL发送给应用服务器。
+         String callbackUrl = "https://192.168.0.0:8888";
+         // 设置上传到OSS文件的前缀，可置空此项。置空后，文件将上传至Bucket的根目录下。
+         String dir = "exampledir/"; 
+  
+          // 创建OSSClient实例。
+          OSS ossClient = new OSSClientBuilder().build(endpoint, accessId, accessKey);
+          try {
+              long expireTime = 30;
+              long expireEndTime = System.currentTimeMillis() + expireTime * 1000;
+              Date expiration = new Date(expireEndTime);
+              // PostObject请求最大可支持的文件大小为5 GB，即CONTENT_LENGTH_RANGE为5*1024*1024*1024。
+              PolicyConditions policyConds = new PolicyConditions();
+              policyConds.addConditionItem(PolicyConditions.COND_CONTENT_LENGTH_RANGE, 0, 1048576000);
+              policyConds.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, dir);
+  
+              String postPolicy = ossClient.generatePostPolicy(expiration, policyConds);
+              byte[] binaryData = postPolicy.getBytes("utf-8");
+              String encodedPolicy = BinaryUtil.toBase64String(binaryData);
+              String postSignature = ossClient.calculatePostSignature(postPolicy);
+  
+              Map<String, String> respMap = new LinkedHashMap<String, String>();
+              respMap.put("accessid", accessId);
+              respMap.put("policy", encodedPolicy);
+              respMap.put("signature", postSignature);
+              respMap.put("dir", dir);
+              respMap.put("host", host);
+              respMap.put("expire", String.valueOf(expireEndTime / 1000));
+              // respMap.put("expire", formatISO8601Date(expiration));
+  
+              JSONObject jasonCallback = new JSONObject();
+              jasonCallback.put("callbackUrl", callbackUrl);
+              jasonCallback.put("callbackBody",
+                      "filename=${object}&size=${size}&mimeType=${mimeType}&height=${imageInfo.height}&width=${imageInfo.width}");
+              jasonCallback.put("callbackBodyType", "application/x-www-form-urlencoded");
+              String base64CallbackBody = BinaryUtil.toBase64String(jasonCallback.toString().getBytes());
+              respMap.put("callback", base64CallbackBody);
+  
+              JSONObject ja1 = JSONObject.fromObject(respMap);
+              // System.out.println(ja1.toString());
+              response.setHeader("Access-Control-Allow-Origin", "*");
+              response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+              response(request, response, ja1.toString());
+  
+          } catch (Exception e) {
+              // Assert.fail(e.getMessage());
+              System.out.println(e.getMessage());
+          } finally { 
+              ossClient.shutdown();
+          }
+      }
+  ```
+
+- 上传回调服务
+
+  上传回调服务响应OSS发送给应用服务器的POST消息，代码片段如下：
+
+  ```java
+  protected boolean VerifyOSSCallbackRequest(HttpServletRequest request, String ossCallbackBody)
+              throws NumberFormatException, IOException {
+          boolean ret = false;
+          String autorizationInput = new String(request.getHeader("Authorization"));
+          String pubKeyInput = request.getHeader("x-oss-pub-key-url");
+          byte[] authorization = BinaryUtil.fromBase64String(autorizationInput);
+          byte[] pubKey = BinaryUtil.fromBase64String(pubKeyInput);
+          String pubKeyAddr = new String(pubKey);
+          if (!pubKeyAddr.startsWith("https://gosspublic.alicdn.com/")
+                  && !pubKeyAddr.startsWith("https://gosspublic.alicdn.com/")) {
+              System.out.println("pub key addr must be oss addrss");
+              return false;
+          }
+          String retString = executeGet(pubKeyAddr);
+          retString = retString.replace("-----BEGIN PUBLIC KEY-----", "");
+          retString = retString.replace("-----END PUBLIC KEY-----", "");
+          String queryString = request.getQueryString();
+          String uri = request.getRequestURI();
+          String decodeUri = java.net.URLDecoder.decode(uri, "UTF-8");
+          String authStr = decodeUri;
+          if (queryString != null && !queryString.equals("")) {
+              authStr += "?" + queryString;
+          }
+          authStr += "\n" + ossCallbackBody;
+          ret = doCheck(authStr, authorization, retString);
+          return ret;
+      }
+  
+      protected void doPost(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
+          String ossCallbackBody = GetPostBody(request.getInputStream(),
+                  Integer.parseInt(request.getHeader("content-length")));
+          boolean ret = VerifyOSSCallbackRequest(request, ossCallbackBody);
+          System.out.println("verify result : " + ret);
+          // System.out.println("OSS Callback Body:" + ossCallbackBody);
+          if (ret) {
+              response(request, response, "{\"Status\":\"OK\"}", HttpServletResponse.SC_OK);
+          } else {
+              response(request, response, "{\"Status\":\"verify not ok\"}", HttpServletResponse.SC_BAD_REQUEST);
+          }
+      }
+  ```
+
+  关于上传回调的API接口说明，请参见[Callback](https://help.aliyun.com/document_detail/31989.htm#section-btz-phx-wdb)。
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204220857241.png" alt="image-20220422085720181" style="zoom:50%;" />
+
+## 使用前端自定义校验和后端JSR303做双重校验
+
+前端自定义校验实现可参考前端代码，这里只介绍后端的校验的实现。
+
+后端校验只需要在需要校验的字段加上相关的校验规则，并告诉SpringMVC需要校验的参数。
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204221411635.png" alt="image-20220422141150944" style="zoom:50%;" />
+
+同时可以自定义错误提示。
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204221417288.png" alt="image-20220422141732455" style="zoom:50%;" />
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204221412951.png" alt="image-20220422141217831" style="zoom:50%;" />
+
+## 使用SpringMVC的@ControllerAdvice实现统一异常的处理
+
+```java
+package com.uin.product.exception;
+
+import com.uin.utils.R;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author wanglufei
+ * @description: 集中处理（感知）错误
+ * @date 2022/4/22/2:43 PM
+ */
+@Slf4j
+//@ControllerAdvice(basePackages = "com.uin.product.controller")
+//@ResponseBody
+//效果一样
+@RestControllerAdvice(basePackages = "com.uin.product.controller")
+public class UinControllerAdvice {
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    public R handlerFormNumException(MethodArgumentNotValidException e) {
+        log.error("数据校验出现问题：{},异常类型：{}", e.getMessage(), e.getClass());
+        BindingResult result = e.getBindingResult();
+        Map<String, String> map = new HashMap<>();
+        result.getFieldErrors().forEach((item) -> {
+            //错误消息提示
+            String message = item.getDefaultMessage();
+            //那个字段出现了问题
+            String field = item.getField();
+            //将这些错误的信息用map装起来
+            map.put(field, message);
+        });
+        return R.error().put("data", map);
+    }
+
+}
+```
+
+## 搭建服务过程中遇到的问题
+
+此处之描述大问题，小问题一百度就出来了。
+
+### 当使用gateway网关将后端的请求路由到后端的renren-fast服务是出现图片不显示,服务出现503或者404
+
+同时高版本的还需要添加:
+
+```xml
+<dependency>
+     <groupId>org.springframework.cloud</groupId>
+     <artifactId>spring-cloud-loadbalancer</artifactId>
+</dependency>
+```
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204202110119.png" alt="image-20220420210741759" style="zoom:50%;" />
+
+![image-20220420211005170](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204202110217.png)
+
