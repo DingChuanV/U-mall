@@ -3,8 +3,11 @@ package com.uin.product.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.uin.product.entity.BrandEntity;
+import com.uin.product.vo.BrandVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,28 @@ import com.uin.product.service.CategoryBrandRelationService;
 public class CategoryBrandRelationController {
     @Autowired
     private CategoryBrandRelationService categoryBrandRelationService;
+
+    ///product/categorybrandrelation/brands/list
+
+    /**
+     * RequestParam 获取请求参数的中的参数
+     * 小tips
+     * 1.controller 只用来处理请求、接受和校验数据
+     * 2.service层接受controller传来的数据，进行业务处理
+     * 3.controller接受service处理完的数据，封装成页面指定的VO
+     */
+    @GetMapping("/brands/list")
+    public R CategoryList(@RequestParam(value = "catId", required = true) Long catId) {
+
+        List<BrandEntity> list = categoryBrandRelationService.getBrandByCatid(catId);
+        List<BrandVo> vos = list.stream().map((item) -> {
+            BrandVo brandVo = new BrandVo();
+            brandVo.setBrandId(item.getBrandId());
+            brandVo.setBrandName(item.getName());
+            return brandVo;
+        }).collect(Collectors.toList());
+        return R.ok().put("data", vos);
+    }
 
     /**
      * 获取品牌关联的分类

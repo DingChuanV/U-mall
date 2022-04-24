@@ -243,7 +243,6 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                 .and((wrpper) -> {
                     wrpper.eq("attr_type", 1);
                 });
-
         //模糊搜索的条件
         String key = (String) params.get("key");
         if (!StringUtils.isEmpty(key)) {
