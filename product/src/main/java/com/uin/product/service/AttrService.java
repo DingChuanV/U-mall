@@ -1,6 +1,7 @@
 package com.uin.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.uin.product.entity.AttrAttrgroupRelationEntity;
 import com.uin.product.entity.AttrEntity;
 import com.uin.product.vo.AttrRelationVo;
 import com.uin.product.vo.AttrResponseVo;
@@ -32,5 +33,7 @@ public interface AttrService extends IService<AttrEntity> {
     void deleteAttrRelation(AttrRelationVo[] vos);
 
     PageUtils getNoRelation(Map<String, Object> params, Long attrgroupId);
+
+    void saveBatchRelation(List<AttrAttrgroupRelationEntity> relationEntities);
 }
 

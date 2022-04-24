@@ -268,4 +268,11 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         return new PageUtils(page);
     }
 
+    @Override
+    public void saveBatchRelation(List<AttrAttrgroupRelationEntity> relationEntities) {
+        relationEntities.forEach((entity)->{
+            attrAttrgroupRelationDao.insert(entity);
+        });
+    }
+
 }

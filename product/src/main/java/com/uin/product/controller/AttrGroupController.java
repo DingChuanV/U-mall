@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.uin.product.entity.AttrAttrgroupRelationEntity;
 import com.uin.product.entity.AttrEntity;
 import com.uin.product.service.AttrService;
 import com.uin.product.service.CategoryService;
@@ -49,6 +50,13 @@ public class AttrGroupController {
         PageUtils page = attrService.getNoRelation(params, attrgroupId);
         return R.ok().put("page", page);
 
+    }
+
+    ///product/attrgroup/attr/relation
+    @PostMapping("/attr/relation")
+    public R saveBatch(@RequestBody List<AttrAttrgroupRelationEntity> relationEntities) {
+        attrService.saveBatchRelation(relationEntities);
+        return R.ok();
     }
 
 
