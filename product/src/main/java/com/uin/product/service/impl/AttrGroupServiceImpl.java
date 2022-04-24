@@ -1,12 +1,20 @@
 package com.uin.product.service.impl;
 
+import com.uin.product.dao.AttrAttrgroupRelationDao;
+import com.uin.product.entity.AttrAttrgroupRelationEntity;
+import com.uin.product.vo.AttrRelationVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -21,6 +29,9 @@ import org.springframework.util.StringUtils;
 
 @Service("attrGroupService")
 public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEntity> implements AttrGroupService {
+
+    @Autowired
+    AttrAttrgroupRelationDao attrAttrgroupRelationDao;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -57,5 +68,6 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
             return new PageUtils(page);
         }
     }
+
 
 }

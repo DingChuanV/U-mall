@@ -9,6 +9,7 @@ import com.uin.product.entity.AttrAttrgroupRelationEntity;
 import com.uin.product.entity.AttrGroupEntity;
 import com.uin.product.entity.CategoryEntity;
 import com.uin.product.service.CategoryService;
+import com.uin.product.vo.AttrRelationVo;
 import com.uin.product.vo.AttrResponseVo;
 import com.uin.product.vo.AttrVo;
 import com.uin.utils.PageUtils;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -215,6 +217,16 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             return attrEntity;
         }).collect(Collectors.toList());
         return entities;
+    }
+
+    @Override
+    public void deleteAttrRelation(AttrRelationVo[] vos) {
+        List<AttrAttrgroupRelationEntity> collect = Arrays.asList(vos).stream().map((item) -> {
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+            BeanUtils.copyProperties(item, attrAttrgroupRelationEntity);
+            return attrAttrgroupRelationEntity;
+        }).collect(Collectors.toList());
+        attrAttrgroupRelationDao.deleteBatchRelation(collect);
     }
 
 }

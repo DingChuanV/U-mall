@@ -2,6 +2,7 @@ package com.uin.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.uin.product.entity.AttrGroupEntity;
+import com.uin.product.vo.AttrRelationVo;
 import com.uin.utils.PageUtils;
 
 import java.util.Map;
@@ -20,7 +21,6 @@ public interface AttrGroupService extends IService<AttrGroupEntity> {
      * 获取对应分类ID下的属性分组
      */
     PageUtils queryPage(Map<String, Object> params, Long catelogId);
-
 
 }
 

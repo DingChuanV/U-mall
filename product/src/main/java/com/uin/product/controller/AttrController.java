@@ -3,6 +3,7 @@ package com.uin.product.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.uin.product.vo.AttrRelationVo;
 import com.uin.product.vo.AttrResponseVo;
 import com.uin.product.vo.AttrVo;
 import com.uin.utils.PageUtils;
@@ -93,5 +94,6 @@ public class AttrController {
 
         return R.ok();
     }
+
 
 }

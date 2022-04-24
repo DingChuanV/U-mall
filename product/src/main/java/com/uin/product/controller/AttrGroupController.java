@@ -7,6 +7,7 @@ import java.util.Map;
 import com.uin.product.entity.AttrEntity;
 import com.uin.product.service.AttrService;
 import com.uin.product.service.CategoryService;
+import com.uin.product.vo.AttrRelationVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ public class AttrGroupController {
         List<AttrEntity> attrEntities = attrService.getRelationAttr(attrgroupId);
         return R.ok().put("data", attrEntities);
     }
+
 
     /**
      * 列表
@@ -109,6 +111,13 @@ public class AttrGroupController {
     public R delete(@RequestBody Long[] attrGroupIds) {
         attrGroupService.removeByIds(Arrays.asList(attrGroupIds));
 
+        return R.ok();
+    }
+
+    ///product/attrgroup/attr/relation/delete
+    @PostMapping("/attr/relation/delete")
+    public R deleteAttrRelation(@RequestBody AttrRelationVo[] vos) {
+        attrService.deleteAttrRelation(vos);
         return R.ok();
     }
 
