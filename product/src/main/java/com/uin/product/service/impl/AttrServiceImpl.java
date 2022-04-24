@@ -1,6 +1,7 @@
 package com.uin.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.uin.constant.ProductConstant;
 import com.uin.product.dao.AttrAttrgroupRelationDao;
 import com.uin.product.dao.AttrGroupDao;
 import com.uin.product.dao.CategoryDao;
@@ -52,10 +53,12 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         //保存基本属性
         this.save(entity);
         //保存关联关系属性
-        AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
-        relationEntity.setAttrId(entity.getAttrId());
-        relationEntity.setAttrGroupId(attrVo.getAttrGroupId());
-        attrAttrgroupRelationDao.insert(relationEntity);
+        if (attrVo.getAttrType() == ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode()) {
+            AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
+            relationEntity.setAttrId(entity.getAttrId());
+            relationEntity.setAttrGroupId(attrVo.getAttrGroupId());
+            attrAttrgroupRelationDao.insert(relationEntity);
+        }
     }
 
     @Transactional
@@ -64,7 +67,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         //条件构造器
         //根据attrType
         QueryWrapper<AttrEntity> queryWrapper = new QueryWrapper<AttrEntity>().eq("attr_type",
-                "base".equalsIgnoreCase(attrType) ? 1 : 0);
+                "base".equalsIgnoreCase(attrType) ?
+                        ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode() :
+                        ProductConstant.AttrEnum.ATTR_TYPE_SALE.getCode());
 
         if (catelogId != 0) {
             queryWrapper.eq("catelog_id", catelogId);
@@ -135,17 +140,20 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         AttrEntity attrEntity = this.baseMapper.selectById(attrId);
         AttrResponseVo respVo = new AttrResponseVo();
         BeanUtils.copyProperties(attrEntity, respVo);
-        //查询设置分组名
-        AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = attrAttrgroupRelationDao
-                .selectOne(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrEntity.getAttrId()));
-        //如果分组id不为空，则查出分组名
-        if (attrAttrgroupRelationEntity != null && attrAttrgroupRelationEntity.getAttrGroupId() != null) {
-            AttrGroupEntity attrGroupEntity = attrGroupDao.selectOne(new QueryWrapper<AttrGroupEntity>().eq("attr_group_id",
-                    attrAttrgroupRelationEntity.getAttrGroupId()));
-            //设置分组名
-            respVo.setGroupName(attrGroupEntity.getAttrGroupName());
-            respVo.setAttrGroupId(attrGroupEntity.getAttrGroupId());
+        if (attrEntity.getAttrType() == ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode()) {
+            //查询设置分组名
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = attrAttrgroupRelationDao
+                    .selectOne(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrEntity.getAttrId()));
+            //如果分组id不为空，则查出分组名
+            if (attrAttrgroupRelationEntity != null && attrAttrgroupRelationEntity.getAttrGroupId() != null) {
+                AttrGroupEntity attrGroupEntity = attrGroupDao.selectOne(new QueryWrapper<AttrGroupEntity>().eq("attr_group_id",
+                        attrAttrgroupRelationEntity.getAttrGroupId()));
+                //设置分组名
+                respVo.setGroupName(attrGroupEntity.getAttrGroupName());
+                respVo.setAttrGroupId(attrGroupEntity.getAttrGroupId());
+            }
         }
+
         //查询到分类的信息
         CategoryEntity categoryEntity = categoryDao.selectOne(new QueryWrapper<CategoryEntity>().eq("cat_id",
                 attrEntity.getCatelogId()));
@@ -156,6 +164,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         respVo.setCatelogPath(path);
         return respVo;
     }
+
     @Transactional
     @Override
     public void updateAttr(AttrVo attr) {
@@ -164,19 +173,22 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         this.baseMapper.updateById(entity);
 
         //只有当属性分组不为空时，说明更新的是规则参数，则需要更新关联表
-        if (attr.getAttrGroupId() != null) {
-            //查询属性-分组名对应关系
-            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
-            attrAttrgroupRelationEntity.setAttrId(attr.getAttrId());
-            attrAttrgroupRelationEntity.setAttrGroupId(attr.getAttrGroupId());
-            Long count = attrAttrgroupRelationDao.selectCount(new QueryWrapper<AttrAttrgroupRelationEntity>()
-                    .eq("attr_id", attrAttrgroupRelationEntity.getAttrId()));
-            if (count > 0) {
-                attrAttrgroupRelationDao.update(attrAttrgroupRelationEntity,
-                        new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id",
-                                attr.getAttrId()));
-            } else {
-                attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+
+        if (entity.getAttrType() == ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode()) {
+            if (attr.getAttrGroupId() != null) {
+                //查询属性-分组名对应关系
+                AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+                attrAttrgroupRelationEntity.setAttrId(attr.getAttrId());
+                attrAttrgroupRelationEntity.setAttrGroupId(attr.getAttrGroupId());
+                Long count = attrAttrgroupRelationDao.selectCount(new QueryWrapper<AttrAttrgroupRelationEntity>()
+                        .eq("attr_id", attrAttrgroupRelationEntity.getAttrId()));
+                if (count > 0) {
+                    attrAttrgroupRelationDao.update(attrAttrgroupRelationEntity,
+                            new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id",
+                                    attr.getAttrId()));
+                } else {
+                    attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+                }
             }
         }
 
