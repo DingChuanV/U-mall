@@ -2,6 +2,7 @@ package com.uin.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.uin.product.entity.AttrEntity;
+import com.uin.product.vo.AttrResponseVo;
 import com.uin.product.vo.AttrVo;
 import com.uin.utils.PageUtils;
 
@@ -16,10 +17,12 @@ import java.util.Map;
  */
 public interface AttrService extends IService<AttrEntity> {
 
-    //PageUtils queryPage(Map<String, Object> params);
-
     void saveAttrVo(AttrVo attrVo);
 
-    PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId,String attrType);
+    PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId, String attrType);
+
+    AttrResponseVo getAttrInfo(Long attrId);
+
+    void updateAttr(AttrVo attr);
 }
 

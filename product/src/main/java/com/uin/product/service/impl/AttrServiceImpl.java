@@ -1,17 +1,20 @@
 package com.uin.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.uin.product.dao.AttrAttrgroupRelationDao;
 import com.uin.product.dao.AttrGroupDao;
 import com.uin.product.dao.CategoryDao;
 import com.uin.product.entity.AttrAttrgroupRelationEntity;
 import com.uin.product.entity.AttrGroupEntity;
 import com.uin.product.entity.CategoryEntity;
+import com.uin.product.service.CategoryService;
 import com.uin.product.vo.AttrResponseVo;
 import com.uin.product.vo.AttrVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,17 +40,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     CategoryDao categoryDao;
     @Autowired
     AttrGroupDao attrGroupDao;
+    @Autowired
+    CategoryService categoryService;
 
-
-//    @Override
-//    public PageUtils queryPage(Map<String, Object> params) {
-//        IPage<AttrEntity> page = this.page(
-//                new Query<AttrEntity>().getPage(params),
-//                new QueryWrapper<AttrEntity>()
-//        );
-//
-//        return new PageUtils(page);
-//    }
 
     @Transactional
     @Override
@@ -63,6 +58,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         attrAttrgroupRelationDao.insert(relationEntity);
     }
 
+    @Transactional
     @Override
     public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId, String attrType) {
         //条件构造器
@@ -117,6 +113,74 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         PageUtils pageUtils = new PageUtils(page);
         pageUtils.setList(collect);
         return pageUtils;
+    }
+
+    /**
+     * 查询属性参数所有信息
+     * 并查询分类名、分类的路径、分组名
+     *
+     * @param attrId
+     * @return com.uin.product.vo.AttrResponseVo
+     * @author wanglufei
+     * @date 2022/4/24 11:03 AM
+     */
+    /**
+     * @Cacheable("attr") 表示可以缓存调用方法（或类中的所有方法）的结果的注释。
+     * 每次调用建议的方法时，都会应用缓存行为
+     */
+    @Cacheable("attr")
+    @Transactional
+    @Override
+    public AttrResponseVo getAttrInfo(Long attrId) {
+        AttrEntity attrEntity = this.baseMapper.selectById(attrId);
+        AttrResponseVo respVo = new AttrResponseVo();
+        BeanUtils.copyProperties(attrEntity, respVo);
+        //查询设置分组名
+        AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = attrAttrgroupRelationDao
+                .selectOne(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrEntity.getAttrId()));
+        //如果分组id不为空，则查出分组名
+        if (attrAttrgroupRelationEntity != null && attrAttrgroupRelationEntity.getAttrGroupId() != null) {
+            AttrGroupEntity attrGroupEntity = attrGroupDao.selectOne(new QueryWrapper<AttrGroupEntity>().eq("attr_group_id",
+                    attrAttrgroupRelationEntity.getAttrGroupId()));
+            //设置分组名
+            respVo.setGroupName(attrGroupEntity.getAttrGroupName());
+            respVo.setAttrGroupId(attrGroupEntity.getAttrGroupId());
+        }
+        //查询到分类的信息
+        CategoryEntity categoryEntity = categoryDao.selectOne(new QueryWrapper<CategoryEntity>().eq("cat_id",
+                attrEntity.getCatelogId()));
+        //设置分类名
+        respVo.setCatelogName(categoryEntity.getName());
+        //查询设置并设置分类路径
+        Long[] path = categoryService.findCatcatelogPath(categoryEntity.getCatId());
+        respVo.setCatelogPath(path);
+        return respVo;
+    }
+    @Transactional
+    @Override
+    public void updateAttr(AttrVo attr) {
+        AttrEntity entity = new AttrEntity();
+        BeanUtils.copyProperties(attr, entity);
+        this.baseMapper.updateById(entity);
+
+        //只有当属性分组不为空时，说明更新的是规则参数，则需要更新关联表
+        if (attr.getAttrGroupId() != null) {
+            //查询属性-分组名对应关系
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+            attrAttrgroupRelationEntity.setAttrId(attr.getAttrId());
+            attrAttrgroupRelationEntity.setAttrGroupId(attr.getAttrGroupId());
+            Long count = attrAttrgroupRelationDao.selectCount(new QueryWrapper<AttrAttrgroupRelationEntity>()
+                    .eq("attr_id", attrAttrgroupRelationEntity.getAttrId()));
+            if (count > 0) {
+                attrAttrgroupRelationDao.update(attrAttrgroupRelationEntity,
+                        new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id",
+                                attr.getAttrId()));
+            } else {
+                attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+            }
+        }
+
+
     }
 
 }
