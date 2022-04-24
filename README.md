@@ -2,11 +2,23 @@
 
 ## 项目简介
 
-正在补充。。。
+Mall商城项目致力于打造一个完整的大型分布式架构的电商平台，采用先阶段流行的前后端分离模式编写。
+
+Mall商城是一套电商项目，包括前台的商城系统以及后台管理系统，基于SpringCloud、SpringCloud Alibaba、Mybatis-plus实现。
+
+前台商城系统包括：用户登陆、注册、商品搜索、商品详情、购物车、订单、秒杀活动等模块。
+
+后台管理系统包括：系统管理、商品系统、优惠营销、库存系统、订单系统、用户系统、内容管理等七大模块。
 
 ## 接口文档
 
 https://easydoc.net/s/78237135/ZUqEdvA4/d3EezLdO
+
+## 项目演示
+
+### 前台商城系统项目演示
+
+### 后台管理系统项目演示
 
 ## 电商项目的基础
 
@@ -33,16 +45,6 @@ https://easydoc.net/s/78237135/ZUqEdvA4/d3EezLdO
 - 属性名确定的，但是值是每一个商品不同来决定的
 
 SPU来决定规格参数的值，SKU来决定销售属性的值。
-
-## 数据库表的设计
-
-
-
-## 模块化分
-
-<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204180832801.png" alt="image-20220418083220804" style="zoom:50%;" />
-
-后续的分布式模块正补充....
 
 ## 环境搭建
 
@@ -265,11 +267,11 @@ demo链接：https://github.com/alibaba/spring-cloud-alibaba/blob/2021.x/spring-
 由于我们还没有Nacos服务，所以我们要去下载。
 
 1. 首先需要获取 Nacos Server，支持直接下载和源码构建两种方式。
-   1. 直接下载：[Nacos Server 下载页](https://github.com/alibaba/nacos/releases)
-   2. 源码构建：进入 Nacos [Github 项目页面](https://github.com/alibaba/nacos)，将代码 git clone 到本地自行编译打包，[参考此文档](https://nacos.io/zh-cn/docs/quick-start.html)。**推荐使用源码构建方式以获取最新版本**
+    1. 直接下载：[Nacos Server 下载页](https://github.com/alibaba/nacos/releases)
+    2. 源码构建：进入 Nacos [Github 项目页面](https://github.com/alibaba/nacos)，将代码 git clone 到本地自行编译打包，[参考此文档](https://nacos.io/zh-cn/docs/quick-start.html)。**推荐使用源码构建方式以获取最新版本**
 2. 启动 Server，进入解压后文件夹或编译打包好的文件夹，找到如下相对文件夹 nacos/bin，并对照操作系统实际情况之下如下命令。
-   1. Linux/Unix/Mac 操作系统，执行命令 `sh startup.sh -m standalone`
-   2. Windows 操作系统，执行命令 `cmd startup.cmd`
+    1. Linux/Unix/Mac 操作系统，执行命令 `sh startup.sh -m standalone`
+    2. Windows 操作系统，执行命令 `cmd startup.cmd`
 
 <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191125323.png" alt="image-20220419112512891" style="zoom:50%;" />
 
@@ -325,8 +327,8 @@ demo链接：https://github.com/alibaba/spring-cloud-alibaba/blob/2021.x/spring-
 
 2. 启动应用，支持 IDE 直接启动和编译打包后启动。
 
-   1. IDE直接启动：找到 nacos-discovery-provider-example 项目的主类 `ProviderApplication`，执行 main 方法启动应用。
-   2. 打包编译后启动：在 nacos-discovery-provider-example 项目中执行 `mvn clean package` 将工程编译打包，然后执行 `java -jar nacos-discovery-provider-example.jar`启动应用。
+    1. IDE直接启动：找到 nacos-discovery-provider-example 项目的主类 `ProviderApplication`，执行 main 方法启动应用。
+    2. 打包编译后启动：在 nacos-discovery-provider-example 项目中执行 `mvn clean package` 将工程编译打包，然后执行 `java -jar nacos-discovery-provider-example.jar`启动应用。
 
 ![](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191148102.png)
 
@@ -535,15 +537,15 @@ public class WebApplication {
 
 1. 想要远程调用其他的服务
 
-   1. 引入openfeign的依赖，让他拥有远程调用的能力
+    1. 引入openfeign的依赖，让他拥有远程调用的能力
 
-   2. 编写一个接口，告诉SpringCloud这个接口需要远程调用远程服务
+    2. 编写一个接口，告诉SpringCloud这个接口需要远程调用远程服务
 
-      1. 声明的接口的每一个方法都是调用那个远程服务的那一个请求
+        1. 声明的接口的每一个方法都是调用那个远程服务的那一个请求
 
-      <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191456281.png" alt="image-20220419145629061" style="zoom: 33%;" />
+       <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191456281.png" alt="image-20220419145629061" style="zoom: 33%;" />
 
-   3. 开启远程调用服务的功能 `@EnableFeignClients(basePackages = "com.uin.member.feign")`
+    3. 开启远程调用服务的功能 `@EnableFeignClients(basePackages = "com.uin.member.feign")`
 
 <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204191457431.png" alt="image-20220419145716360" style="zoom: 33%;" />
 
