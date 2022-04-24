@@ -43,6 +43,8 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     AttrGroupDao attrGroupDao;
     @Autowired
     CategoryService categoryService;
+    @Autowired
+    AttrDao attrDao;
 
 
     @Transactional
@@ -193,6 +195,26 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         }
 
 
+    }
+
+    /**
+     * 根据分组的id查找所有关联的基本属性
+     *
+     * @param attrgroupId
+     * @return java.util.List<com.uin.product.entity.AttrEntity>
+     * @author wanglufei
+     * @date 2022/4/24 2:16 PM
+     */
+    @Override
+    public List<AttrEntity> getRelationAttr(Long attrgroupId) {
+        List<AttrAttrgroupRelationEntity> attrgroupRelationEntities = attrAttrgroupRelationDao.selectList(new QueryWrapper<AttrAttrgroupRelationEntity>().eq(
+                "attr_group_id", attrgroupId));
+
+        List<AttrEntity> entities = attrgroupRelationEntities.stream().map((entity) -> {
+            AttrEntity attrEntity = baseMapper.selectById(entity.getAttrId());
+            return attrEntity;
+        }).collect(Collectors.toList());
+        return entities;
     }
 
 }

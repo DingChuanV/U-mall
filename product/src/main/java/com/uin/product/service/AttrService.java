@@ -6,6 +6,7 @@ import com.uin.product.vo.AttrResponseVo;
 import com.uin.product.vo.AttrVo;
 import com.uin.utils.PageUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,5 +25,7 @@ public interface AttrService extends IService<AttrEntity> {
     AttrResponseVo getAttrInfo(Long attrId);
 
     void updateAttr(AttrVo attr);
+
+    List<AttrEntity> getRelationAttr(Long attrgroupId);
 }
 
