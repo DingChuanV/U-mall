@@ -3,6 +3,7 @@ package com.uin.product.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.uin.product.vo.SpuSaveVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 
@@ -66,9 +67,9 @@ public class SpuInfoController {
     /**
      *@RequiresPermissions("product:spuinfo:save")
      */
-    public R save(@RequestBody SpuInfoEntity spuInfo){
-		spuInfoService.save(spuInfo);
-
+    public R save(@RequestBody SpuSaveVo vo){
+		//spuInfoService.save(spuInfo);
+        spuInfoService.saveSpuSaveVo(vo);
         return R.ok();
     }
 

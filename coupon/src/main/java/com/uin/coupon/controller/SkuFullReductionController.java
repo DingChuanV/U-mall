@@ -3,6 +3,7 @@ package com.uin.coupon.controller;
 
 import com.uin.coupon.entity.SkuFullReductionEntity;
 import com.uin.coupon.service.SkuFullReductionService;
+import com.uin.to.SkuReductionTo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,15 @@ import java.util.Map;
 public class SkuFullReductionController {
     @Autowired
     private SkuFullReductionService skuFullReductionService;
+
+
+    @PostMapping("/saveinfo")
+    public R saveInfo(@RequestBody SkuReductionTo skuReductionTo){
+        //PageUtils page = skuFullReductionService.queryPage(params);
+        skuFullReductionService.saveSkuReduction(skuReductionTo);
+        return R.ok();
+    }
+
 
     /**
      * 列表
