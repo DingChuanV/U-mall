@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         return new PageUtils(page);
     }
 
+    //TODO 失败处理高级部分
     @Transactional
     @Override
     public void saveSpuSaveVo(SpuSaveVo spuSaveVo) {
@@ -149,13 +151,58 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 SkuReductionTo skuReductionTo = new SkuReductionTo();
                 BeanUtils.copyProperties(sku, skuReductionTo);
                 skuReductionTo.setSkuId(skuInfoEntity.getSkuId());
-                R r1 = spuFeignService.saveSkuReduction(skuReductionTo);
-                if (r1.getCode() != 0) {
-                    log.error("远程保存sku积分信息失败");
+
+                if (skuReductionTo.getFullCount() > 0 || skuReductionTo.getFullPrice().compareTo(new BigDecimal("0")) == 1) {
+                    R r1 = spuFeignService.saveSkuReduction(skuReductionTo);
+                    if (r1.getCode() != 0) {
+                        log.error("远程保存sku积分信息失败");
+                    }
                 }
 
             });
         }
+    }
+
+    /**
+     * SPU检索
+     *
+     * @param params
+     * @return com.uin.utils.PageUtils
+     * @author wanglufei
+     * @date 2022/4/25 2:42 PM
+     */
+    @Override
+    public PageUtils queryPageByCodition(Map<String, Object> params) {
+        QueryWrapper<SpuInfoEntity> queryWrapper = new QueryWrapper<>();
+        //模糊查询
+        String key = (String) params.get("key");
+        if (!StringUtils.isEmpty(key)) {
+            queryWrapper.and((item) -> {
+                item.eq("id", key).or().like("spu_name", key);
+            });
+        }
+        //状态
+        String status = (String) params.get("status");
+        if (!StringUtils.isEmpty(status)) {
+            queryWrapper.eq("publish_status", status);
+        }
+
+        //brand_id
+        String brandId = (String) params.get("brandId");
+        if (!StringUtils.isEmpty(brandId)) {
+            queryWrapper.eq("brand_id", brandId);
+        }
+        //catalog_id
+        String catalogId = (String) params.get("catalog_id");
+        if (!StringUtils.isEmpty(brandId)) {
+            queryWrapper.eq("catalog_id", catalogId);
+        }
+        //分页查询
+        IPage<SpuInfoEntity> page = this.page(
+                new Query<SpuInfoEntity>().getPage(params),
+                queryWrapper
+        );
+        return new PageUtils(page);
     }
 
 }
