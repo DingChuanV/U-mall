@@ -1,17 +1,15 @@
 package com.uin.product.service.impl;
 
 import com.uin.product.dao.AttrAttrgroupRelationDao;
-import com.uin.product.entity.AttrAttrgroupRelationEntity;
-import com.uin.product.vo.AttrRelationVo;
+import com.uin.product.entity.AttrEntity;
+import com.uin.product.service.AttrService;
+import com.uin.product.vo.AttrGroupWithAttrsVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +30,8 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
 
     @Autowired
     AttrAttrgroupRelationDao attrAttrgroupRelationDao;
+    @Autowired
+    AttrService attrService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -67,6 +67,31 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
                     wrapper);
             return new PageUtils(page);
         }
+    }
+
+    /**
+     * 根据分类的id查出当前分类下的所有属性分组
+     * 查出每个属性分组的所有属性
+     *
+     * @param catelogId
+     * @return java.util.List<com.uin.product.vo.AttrGroupWithAttrs>
+     * @author wanglufei
+     * @date 2022/4/24 10:42 PM
+     */
+    @Override
+    public List<AttrGroupWithAttrsVo> getAttrGroupWithAtrrsByCatelogId(Long catelogId) {
+        //1.查询分组信息
+        List<AttrGroupEntity> list = this.list(new QueryWrapper<AttrGroupEntity>().eq("catelog_id", catelogId));
+
+        //根据分组信息查询出属性
+        List<AttrGroupWithAttrsVo> collect = list.stream().map((item) -> {
+            AttrGroupWithAttrsVo attrGroupWithAttrs = new AttrGroupWithAttrsVo();
+            BeanUtils.copyProperties(item, attrGroupWithAttrs);
+            List<AttrEntity> relationAttr = attrService.getRelationAttr(attrGroupWithAttrs.getAttrGroupId());
+            attrGroupWithAttrs.setAttrs(relationAttr);
+            return attrGroupWithAttrs;
+        }).collect(Collectors.toList());
+        return collect;
     }
 
 

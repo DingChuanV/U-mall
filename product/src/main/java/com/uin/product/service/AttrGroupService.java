@@ -2,9 +2,10 @@ package com.uin.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.uin.product.entity.AttrGroupEntity;
-import com.uin.product.vo.AttrRelationVo;
+import com.uin.product.vo.AttrGroupWithAttrsVo;
 import com.uin.utils.PageUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,5 +23,6 @@ public interface AttrGroupService extends IService<AttrGroupEntity> {
      */
     PageUtils queryPage(Map<String, Object> params, Long catelogId);
 
+    List<AttrGroupWithAttrsVo> getAttrGroupWithAtrrsByCatelogId(Long catelogId);
 }
 

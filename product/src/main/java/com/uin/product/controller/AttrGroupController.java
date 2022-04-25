@@ -8,6 +8,7 @@ import com.uin.product.entity.AttrAttrgroupRelationEntity;
 import com.uin.product.entity.AttrEntity;
 import com.uin.product.service.AttrService;
 import com.uin.product.service.CategoryService;
+import com.uin.product.vo.AttrGroupWithAttrsVo;
 import com.uin.product.vo.AttrRelationVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
@@ -35,6 +36,16 @@ public class AttrGroupController {
     @Autowired
     AttrService attrService;
 
+    ///product/attrgroup/{catelogId}/withattr
+    //获取分类下所有分组&关联属性
+    @GetMapping("/{catelogId}/withattr")
+    public R getAttrGroupWithAtrrs(@PathVariable("catelogId") Long catelogId) {
+        //1.查处当前分类下的所有属性分组
+        //2.查处每个属性分组的所有属性
+        List<AttrGroupWithAttrsVo> data =
+                attrGroupService.getAttrGroupWithAtrrsByCatelogId(catelogId);
+        return R.ok().put("data", data);
+    }
 
     // /product/attrgroup/{attrgroupId}/attr/relation
     @GetMapping("/{attrgroupId}/attr/relation")
