@@ -26,4 +26,20 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
         return new PageUtils(page);
     }
 
+    @Override
+    public PageUtils unReceiveList(Map<String, Object> params) {
+        //查询未分配或者未领取
+
+
+        IPage<PurchaseEntity> page = this.page(
+                new Query<PurchaseEntity>().getPage(params),
+                new QueryWrapper<PurchaseEntity>()
+                        .eq("status", 0)
+                        .or()
+                        .eq("status", 1)
+        );
+
+        return new PageUtils(page);
+    }
+
 }

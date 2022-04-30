@@ -24,6 +24,34 @@ public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
 
+    // /ware/purchase/unreceive/list
+    /**
+     * 查询未领取的采购单
+     */
+    @RequestMapping("/unreceive/list")
+    /**
+     * @RequiresPermissions("ware:purchase:list")
+     */
+    public R unReceiveList(@RequestParam Map<String, Object> params){
+        PageUtils page = purchaseService.unReceiveList(params);
+        return R.ok().put("page", page);
+    }
+    ///ware/purchase/merge
+    /**
+     * 合并采购需求
+     */
+    @RequestMapping("/unreceive/list")
+    /**
+     * @RequiresPermissions("ware:purchase:list")
+     */
+    public R merge(@RequestParam Map<String, Object> params){
+        //purchaseId: 1, //整单id
+        //  items:[1,2,3,4] //合并项集合
+        PageUtils page = purchaseService.mergePurchase(params);
+        return R.ok().put("page", page);
+    }
+
+
     /**
      * 列表
      */
