@@ -5,10 +5,12 @@ import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import com.uin.ware.entity.PurchaseEntity;
 import com.uin.ware.service.PurchaseService;
+import com.uin.ware.vo.MergeVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -25,6 +27,7 @@ public class PurchaseController {
     private PurchaseService purchaseService;
 
     // /ware/purchase/unreceive/list
+
     /**
      * 查询未领取的采购单
      */
@@ -32,23 +35,24 @@ public class PurchaseController {
     /**
      * @RequiresPermissions("ware:purchase:list")
      */
-    public R unReceiveList(@RequestParam Map<String, Object> params){
+    public R unReceiveList(@RequestParam Map<String, Object> params) {
         PageUtils page = purchaseService.unReceiveList(params);
         return R.ok().put("page", page);
     }
     ///ware/purchase/merge
+
     /**
      * 合并采购需求
      */
-    @RequestMapping("/unreceive/list")
+    @PostMapping("/merge")
     /**
      * @RequiresPermissions("ware:purchase:list")
      */
-    public R merge(@RequestParam Map<String, Object> params){
+    public R merge(@RequestBody MergeVo mergeVo) {
         //purchaseId: 1, //整单id
         //  items:[1,2,3,4] //合并项集合
-        PageUtils page = purchaseService.mergePurchase(params);
-        return R.ok().put("page", page);
+        purchaseService.mergePurchase(mergeVo);
+        return R.ok();
     }
 
 
@@ -59,7 +63,7 @@ public class PurchaseController {
     /**
      * @RequiresPermissions("ware:purchase:list")
      */
-    public R list(@RequestParam Map<String, Object> params){
+    public R list(@RequestParam Map<String, Object> params) {
         PageUtils page = purchaseService.queryPage(params);
 
         return R.ok().put("page", page);
@@ -73,8 +77,8 @@ public class PurchaseController {
     /**
      *@RequiresPermissions("ware:purchase:info")
      */
-    public R info(@PathVariable("id") Long id){
-		PurchaseEntity purchase = purchaseService.getById(id);
+    public R info(@PathVariable("id") Long id) {
+        PurchaseEntity purchase = purchaseService.getById(id);
 
         return R.ok().put("purchase", purchase);
     }
@@ -87,8 +91,10 @@ public class PurchaseController {
      *@RequiresPermissions("ware:purchase:save")
      */
 
-    public R save(@RequestBody PurchaseEntity purchase){
-		purchaseService.save(purchase);
+    public R save(@RequestBody PurchaseEntity purchase) {
+        purchase.setCreateTime(new Date());
+        purchase.setUpdateTime(new Date());
+        purchaseService.save(purchase);
 
         return R.ok();
     }
@@ -100,8 +106,8 @@ public class PurchaseController {
     /**
      *@RequiresPermissions("ware:purchase:update")
      */
-    public R update(@RequestBody PurchaseEntity purchase){
-		purchaseService.updateById(purchase);
+    public R update(@RequestBody PurchaseEntity purchase) {
+        purchaseService.updateById(purchase);
 
         return R.ok();
     }
@@ -113,8 +119,8 @@ public class PurchaseController {
     /**
      *@RequiresPermissions("ware:purchase:delete")
      */
-    public R delete(@RequestBody Long[] ids){
-		purchaseService.removeByIds(Arrays.asList(ids));
+    public R delete(@RequestBody Long[] ids) {
+        purchaseService.removeByIds(Arrays.asList(ids));
 
         return R.ok();
     }
