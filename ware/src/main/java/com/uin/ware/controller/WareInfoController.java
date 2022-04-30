@@ -33,7 +33,6 @@ public class WareInfoController {
      */
     public R list(@RequestParam Map<String, Object> params){
         PageUtils page = wareInfoService.queryPage(params);
-
         return R.ok().put("page", page);
     }
 

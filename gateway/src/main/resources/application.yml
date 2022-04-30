@@ -11,10 +11,19 @@ spring:
 #          uri: https://www.qq.com
 #          predicates:
 #            - Query=url,qq
+
+
         - id: member_route
           uri: lb://member
           predicates:
             - Path=/api/member/**
+          filters:
+            - RewritePath=/api/(?<segment>.*),/$\{segment}
+
+        - id: ware_route
+          uri: lb://uware
+          predicates:
+            - Path=/api/ware/**
           filters:
             - RewritePath=/api/(?<segment>.*),/$\{segment}
 
@@ -31,6 +40,8 @@ spring:
             - Path=/api/thirdpaty/**
           filters:
             - RewritePath=/api/thirdpaty/(?<segment>.*),/$\{segment}
+
+
 
         - id: admin_route
           uri: lb://renren-fast

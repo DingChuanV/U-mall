@@ -189,12 +189,12 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
         //brand_id
         String brandId = (String) params.get("brandId");
-        if (!StringUtils.isEmpty(brandId)) {
+        if (!StringUtils.isEmpty(brandId) && !"0".equalsIgnoreCase(brandId)) {
             queryWrapper.eq("brand_id", brandId);
         }
         //catalog_id
         String catalogId = (String) params.get("catalog_id");
-        if (!StringUtils.isEmpty(brandId)) {
+        if (!StringUtils.isEmpty(brandId) && !"0".equalsIgnoreCase(catalogId)) {
             queryWrapper.eq("catalog_id", catalogId);
         }
         //分页查询
@@ -202,6 +202,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 new Query<SpuInfoEntity>().getPage(params),
                 queryWrapper
         );
+
         return new PageUtils(page);
     }
 
