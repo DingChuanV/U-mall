@@ -17,10 +17,12 @@ import com.uin.ware.vo.MergeVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service("purchaseService")
@@ -85,6 +87,44 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
         entity.setId(id);
         entity.setUpdateTime(new Date());
         this.updateById(entity);
+    }
+
+    @Override
+    public void received(List<Long> ids) {
+        //确认当前采购单是新建或者已分配的状态
+        List<PurchaseEntity> collect = ids
+                .stream()
+                .map(id -> {
+                    PurchaseEntity purchase = this.getById(id);
+                    return purchase;
+                }).filter(item -> {
+                    if (item.getStatus() == WareStatusConstant.PurchaseStatusEnum.CREATE_PURCHASE.getCode()
+                            || item.getStatus() == WareStatusConstant.PurchaseStatusEnum.ASSIGNED.getCode()) {
+                        return true;
+                    }
+                    return false;
+                }).map(item -> {
+                    item.setStatus(WareStatusConstant.PurchaseStatusEnum.RECEIVE.getCode());
+                    item.setUpdateTime(new Date());
+                    return item;
+                }).collect(Collectors.toList());
+        //更改采购单的状态
+        this.updateBatchById(collect);
+        //改变采购项的状态
+        collect.forEach(purchaseEntity -> {
+            List<PurchaseDetailEntity> list =
+                    purchaseDetailService.listDetailByPurchaseId(purchaseEntity.getId());
+            if (!StringUtils.isEmpty(list)) {
+                List<PurchaseDetailEntity> entityList = list.stream().map(item -> {
+                    PurchaseDetailEntity entity = new PurchaseDetailEntity();
+                    entity.setId(item.getId());
+                    //改变状态
+                    entity.setStatus(WareStatusConstant.PurchaseDetailsStatusEnum.BUYING.getCode());
+                    return entity;
+                }).collect(Collectors.toList());
+                purchaseDetailService.updateBatchById(entityList);
+            }
+        });
     }
 
 }

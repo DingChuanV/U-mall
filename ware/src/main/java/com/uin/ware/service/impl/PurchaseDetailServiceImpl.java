@@ -12,6 +12,7 @@ import com.uin.ware.service.PurchaseDetailService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 
 @Service("purchaseDetailService")
@@ -24,7 +25,7 @@ public class PurchaseDetailServiceImpl extends ServiceImpl<PurchaseDetailDao, Pu
         QueryWrapper<PurchaseDetailEntity> queryWrapper = new QueryWrapper<>();
         String key = (String) params.get("key");
         if (!StringUtils.isEmpty(key)) {
-            queryWrapper.and((wrapper)->{
+            queryWrapper.and((wrapper) -> {
                 wrapper.eq("purchase_id", key).or().eq("sku_id", key);
             });
         }
@@ -44,6 +45,12 @@ public class PurchaseDetailServiceImpl extends ServiceImpl<PurchaseDetailDao, Pu
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public List<PurchaseDetailEntity> listDetailByPurchaseId(Long id) {
+        List<PurchaseDetailEntity> detailEntities = this.list(new QueryWrapper<PurchaseDetailEntity>().eq("purchase_id", id));
+        return detailEntities;
     }
 
 }

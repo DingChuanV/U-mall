@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,6 +56,20 @@ public class PurchaseController {
         return R.ok();
     }
 
+    ///ware/purchase/received
+
+    /**
+     * 领取采购单
+     */
+    @PostMapping("/received")
+    /**
+     * @RequiresPermissions("ware:purchase:list")
+     */
+    public R received(@RequestBody List<Long> ids) {
+        // [1,2,3,4] 采购单的数组
+        purchaseService.received(ids);
+        return R.ok();
+    }
 
     /**
      * 列表
