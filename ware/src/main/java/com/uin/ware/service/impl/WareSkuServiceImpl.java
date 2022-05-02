@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
+import com.uin.utils.R;
 import com.uin.ware.dao.WareSkuDao;
 import com.uin.ware.entity.WareSkuEntity;
+import com.uin.ware.feign.ProductFeign;
 import com.uin.ware.service.WareSkuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.Map;
 public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> implements WareSkuService {
     @Autowired
     WareSkuDao skuDao;
+    @Autowired
+    ProductFeign productFeign;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -55,6 +59,20 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             wareSkuEntity.setId(skuId);
             wareSkuEntity.setWareId(wareId);
             wareSkuEntity.setStock(skuNum);
+            wareSkuEntity.setStockLocked(0);
+            //当然这里需要远程查询product服务的商品名称 根据skuId
+            //如果失败 事务不需要回滚
+            //1. 自己catch异常
+            //2。
+            try {
+                R info = productFeign.info(skuId);
+                //skuInfo
+                Map<String, Object> skuInfo = (Map<String, Object>) info.get("skuInfo");
+                String skuName = (String) skuInfo.get("skuName");
+                wareSkuEntity.setSkuName(skuName);
+            } catch (Exception e) {
+
+            }
             //那就是新增的操作
             skuDao.insert(wareSkuEntity);
         } else {
