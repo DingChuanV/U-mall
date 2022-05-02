@@ -1,4 +1,4 @@
-# Mall商城
+# Mall商城(基础篇的开发)
 
 ## 项目简介
 
@@ -9,6 +9,12 @@ Mall商城是一套电商项目，包括前台的商城系统以及后台管理�
 前台商城系统包括：用户登陆、注册、商品搜索、商品详情、购物车、订单、秒杀活动等模块。
 
 后台管理系统包括：系统管理、商品系统、优惠营销、库存系统、订单系统、用户系统、内容管理等七大模块。
+
+## 项目架构
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202205021433733.png" alt="image-20220502143323434" style="zoom:50%;" />
+
+![image-20220502143436881](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202205021434272.png)
 
 ## 接口文档
 
@@ -829,4 +835,44 @@ public class UinControllerAdvice {
 <img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204202110119.png" alt="image-20220420210741759" style="zoom:50%;" />
 
 ![image-20220420211005170](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202204202110217.png)
+
+## 总结
+
+历经11天，终于写完了商场的基础分布式项目的搭建和维护。中途也奔溃过、难受过、放弃过。每次特别难受的时候，跑到厕所偷偷的哭会儿。每天早8晚9，待在实验室硬肝这个项目，逃过很多课，所以还在肝的兄弟们，别放弃！相信自己！好吧？
+
+中间还要出去找暑假实习，去面试。终于在4.27号，找到了一个自己还算是满意的公司，给的薪资也可以。先将就干着吧，毕竟也是第一次实习。
+
+<img src="https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202205021413377.png" alt="image-20220502141351418" style="zoom:50%;" />
+
+还记得在4.26的面试，面试官还问到我，服务之间的远程调用。我吊打面试官！！！面完就给offer，不过实习给的工资有点低，公司还可以，做银行的业务。
+
+沿途拍到的。
+
+![image-20220502141512277](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202205021415801.png)
+
+![image-20220502141606431](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202205021416887.png)
+
+![image-20220502141627481](https://bearbrick0.oss-cn-qingdao.aliyuncs.com/images/img/202205021416914.png)
+
+收获很多，特别感谢雷丰阳老师。收获很多。不行了，眼泪快掉下来了。😭
+
+在此总结分布式基础篇做了哪些内容。
+
+- 分布式的基础篇概念
+
+微服务、注册中心、配置中心、远程调用、Feign、网关
+
+- 基础开发
+
+SpringBoot 2.6.3、SpringCloud、Mybatis-Plus、Vue组件化、阿里云对象存储
+
+- 环境
+
+Ubuntu 20.0.4、Docker、Mysql、Redis、逆向工程&人人开源
+
+- 开发规范
+
+1. 数据校验JSR303、全局异常处理、全局统一返回、全局跨域处理
+2. 枚举状态、业务状态码、VO与TO、PO的划分、逻辑删除
+3. Lombok：@Data、@Slf4j
 
