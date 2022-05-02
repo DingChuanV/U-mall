@@ -1,18 +1,18 @@
 package com.uin.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
-import com.uin.product.vo.AttrRelationVo;
+import com.uin.product.entity.ProductAttrValueEntity;
+import com.uin.product.service.ProductAttrValueService;
 import com.uin.product.vo.AttrResponseVo;
 import com.uin.product.vo.AttrVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import com.uin.product.entity.AttrEntity;
 import com.uin.product.service.AttrService;
 
 
@@ -28,6 +28,29 @@ import com.uin.product.service.AttrService;
 public class AttrController {
     @Autowired
     private AttrService attrService;
+    @Autowired
+    ProductAttrValueService productAttrValueService;
+
+    ///product/attr/update/{spuId}
+    @PostMapping("/update/{spuId}")
+    public R updateSpu(@RequestBody List<ProductAttrValueEntity> productAttrValueEntities,
+                       @PathVariable("spuId") Long spuId) {
+        productAttrValueService.updateSpuAttr(spuId, productAttrValueEntities);
+        return R.ok();
+    }
+
+    /**
+     * 获取spu规格
+     * // /product/attr/base/listforspu/{spuId}
+     *
+     * @PathVariable 路径变量
+     * @author wanglufei
+     */
+    @GetMapping("/base/listforspu/{spuId}")
+    public R listSpuAttr(@PathVariable("spuId") Long spuId) {
+        List<ProductAttrValueEntity> data = productAttrValueService.listSpuAttr(spuId);
+        return R.ok().put("data", data);
+    }
 
     /**
      * 获取分类规格参数
