@@ -13,12 +13,16 @@ import com.uin.ware.entity.PurchaseDetailEntity;
 import com.uin.ware.entity.PurchaseEntity;
 import com.uin.ware.service.PurchaseDetailService;
 import com.uin.ware.service.PurchaseService;
+import com.uin.ware.service.WareSkuService;
+import com.uin.ware.vo.Itmes;
 import com.uin.ware.vo.MergeVo;
+import com.uin.ware.vo.PurchaseDoneVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +34,10 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
 
     @Autowired
     PurchaseDetailService purchaseDetailService;
+    @Autowired
+    PurchaseService purchaseService;
+    @Autowired
+    WareSkuService wareSkuService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -125,6 +133,53 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
                 purchaseDetailService.updateBatchById(entityList);
             }
         });
+    }
+
+    /**
+     * 完成采购
+     *
+     * @param vo
+     * @author wanglufei
+     * @date 2022/5/2 10:15 AM
+     */
+    @Transactional
+    @Override
+    public void done(PurchaseDoneVo vo) {
+        Boolean flag = true;
+        //2.改变每一个采购单中的采购项的状态
+        List<Itmes> itmes = vo.getItmes();
+        List<PurchaseDetailEntity> updates = new ArrayList<>();
+        for (Itmes itme : itmes) {
+            PurchaseDetailEntity detailEntity = new PurchaseDetailEntity();
+            if (itme.getStatus() == WareStatusConstant.PurchaseDetailsStatusEnum.HASERROR.getCode()) {
+                flag = false;
+                detailEntity.setStatus(itme.getStatus());
+            } else {
+                detailEntity.setStatus(WareStatusConstant.PurchaseDetailsStatusEnum.FINISH.getCode());
+                //3.将成功的采购入库
+                //成功的话 要更新（增加的操作）对应的商品的库存
+                //sku_id  ware_id   stock
+                //查处当前要入库的信息
+                PurchaseDetailEntity entity = purchaseDetailService.getById(itme.getItemId());
+                Long skuId = entity.getSkuId();
+                Long wareId = entity.getWareId();
+                Integer skuNum = entity.getSkuNum();
+                wareSkuService.addStcok(skuId,wareId,skuNum);
+            }
+            detailEntity.setId(itme.getItemId());
+            updates.add(detailEntity);
+        }
+        purchaseDetailService.updateBatchById(updates);
+
+        //1.改变采购单的状态
+        Long id = vo.getId();
+        PurchaseEntity purchaseEntity = new PurchaseEntity();
+        purchaseEntity.setId(id);
+        purchaseEntity.setStatus(flag ? WareStatusConstant.PurchaseStatusEnum.FINISH.getCode() :
+                WareStatusConstant.PurchaseStatusEnum.HASERROR.getCode());
+        purchaseEntity.setUpdateTime(new Date());
+        purchaseService.updateById(purchaseEntity);
+
     }
 
 }

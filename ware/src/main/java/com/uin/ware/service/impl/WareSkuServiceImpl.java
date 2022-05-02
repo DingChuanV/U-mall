@@ -9,13 +9,17 @@ import com.uin.utils.Query;
 import com.uin.ware.dao.WareSkuDao;
 import com.uin.ware.entity.WareSkuEntity;
 import com.uin.ware.service.WareSkuService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 
 @Service("wareSkuService")
 public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> implements WareSkuService {
+    @Autowired
+    WareSkuDao skuDao;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -39,6 +43,24 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public void addStcok(Long skuId, Long wareId, Integer skuNum) {
+        //如果还没有库存 那就是新增的操作
+        List<WareSkuEntity> skuEntities = skuDao.selectList(new QueryWrapper<WareSkuEntity>().eq("sku_id", skuId).eq("ware_id",
+                wareId));
+        if (skuEntities == null && skuEntities.size() == 0) {
+            WareSkuEntity wareSkuEntity = new WareSkuEntity();
+            wareSkuEntity.setId(skuId);
+            wareSkuEntity.setWareId(wareId);
+            wareSkuEntity.setStock(skuNum);
+            //那就是新增的操作
+            skuDao.insert(wareSkuEntity);
+        } else {
+            //如果有就是更新操作
+            skuDao.updateStock(skuId, wareId, skuNum);
+        }
     }
 
 }

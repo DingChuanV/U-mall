@@ -6,6 +6,7 @@ import com.uin.utils.R;
 import com.uin.ware.entity.PurchaseEntity;
 import com.uin.ware.service.PurchaseService;
 import com.uin.ware.vo.MergeVo;
+import com.uin.ware.vo.PurchaseDoneVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,15 +28,26 @@ public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
 
+    // /ware/purchase/done
+    /**
+     * 完成采购
+     * {
+     *    id: 123,//采购单id
+     *    items: [{itemId:1,status:4,reason:""}]//完成/失败的需求详情
+     * }
+     */
+    @PostMapping("/purchase/done")
+    public R donePurchase(@RequestBody PurchaseDoneVo vo) {
+       purchaseService.done(vo);
+        return R.ok();
+    }
+
     // /ware/purchase/unreceive/list
 
     /**
      * 查询未领取的采购单
      */
     @RequestMapping("/unreceive/list")
-    /**
-     * @RequiresPermissions("ware:purchase:list")
-     */
     public R unReceiveList(@RequestParam Map<String, Object> params) {
         PageUtils page = purchaseService.unReceiveList(params);
         return R.ok().put("page", page);
@@ -62,9 +74,6 @@ public class PurchaseController {
      * 领取采购单
      */
     @PostMapping("/received")
-    /**
-     * @RequiresPermissions("ware:purchase:list")
-     */
     public R received(@RequestBody List<Long> ids) {
         // [1,2,3,4] 采购单的数组
         purchaseService.received(ids);
