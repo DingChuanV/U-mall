@@ -124,13 +124,20 @@ public class EsclientApplicationTests {
         //aggregations.asList().forEach(aggregation -> System.out.println("当前聚合的名字" + aggregation
         // .getName()));
         Terms ageAgg1 = aggregations.get("ageAgg");
-        ageAgg1.getBuckets().forEach((Consumer<Terms.Bucket>) bucket -> {
-            String keyAsString = bucket.getKeyAsString();
-            System.out.println("年龄：" + keyAsString);
-        });
+        if (ageAgg1!=null){
+//            ageAgg1.getBuckets().forEach((Consumer<Terms.Bucket>) bucket -> {
+//                String keyAsString = bucket.getKeyAsString();
+//                System.out.println("年龄：" + keyAsString);
+//            });
+            for (Terms.Bucket bucket:ageAgg1.getBuckets()){
+                String keyAsString = bucket.getKeyAsString();
+                System.out.println("年龄：" + keyAsString);
+            }
+        }
+
 
         Avg banlanceAvg1 = aggregations.get("banlanceAvg");
-        System.out.println("平均薪资："+banlanceAvg1);
+        System.out.println("平均薪资："+banlanceAvg1.getValue());
     }
 
 }
