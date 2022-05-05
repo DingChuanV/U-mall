@@ -9,6 +9,7 @@ import com.uin.product.dao.CategoryDao;
 import com.uin.product.entity.CategoryEntity;
 import com.uin.product.service.CategoryBrandRelationService;
 import com.uin.product.service.CategoryService;
+import com.uin.product.vo.Catalog2Vo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.checkerframework.checker.units.qual.C;
@@ -90,6 +91,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     @Transactional
+
     @Override
     public void updateRelationCatgory(CategoryEntity category) {
         //更新自己
@@ -103,6 +105,45 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public List<CategoryEntity> getLevel_one() {
         List<CategoryEntity> categoryEntityList = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
         return categoryEntityList;
+    }
+
+    @Override
+    public Map<String, List<Catalog2Vo>> getCatalogJson() {
+        //1.查出所有一级分类的数据
+        List<CategoryEntity> level_one = getLevel_one();
+        //2.封装数据
+        Map<String, List<Catalog2Vo>> stringListMap = level_one.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
+            //1.每一个一级分类，查到这个一级分类的二级分类
+            List<CategoryEntity> categoryEntityList = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid",
+                    value.getCatId()));
+            List<Catalog2Vo> catalog2Vos = null;
+            if (categoryEntityList != null) {
+                catalog2Vos = categoryEntityList.stream().map(l2 -> {
+                    //2.二级菜单封装
+                    Catalog2Vo catalog2Vo = new Catalog2Vo(value.getCatId().toString(), null,
+                            l2.getCatId().toString(),
+                            l2.getName());
+                    //3.分装三级菜单 找当前二级菜单的三级菜单
+                    List<CategoryEntity> categoryEntities = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid",
+                            l2.getCatId()));
+                    if (categoryEntities != null) {
+                        List<Catalog2Vo.Catalog3Vo> vos = categoryEntities
+                                .stream()
+                                .map(l3 -> {
+                                    Catalog2Vo.Catalog3Vo catalog3Vo =
+                                            new Catalog2Vo.Catalog3Vo(l2.getCatId().toString(),
+                                                    l3.getCatId().toString(), l3.getName());
+                                    return catalog3Vo;
+                                }).collect(Collectors.toList());
+                        catalog2Vo.setCatalog3List(vos);
+                    }
+                    return catalog2Vo;
+                }).collect(Collectors.toList());
+            }
+            return catalog2Vos;
+        }));
+
+        return stringListMap;
     }
 
     //225 25 1
