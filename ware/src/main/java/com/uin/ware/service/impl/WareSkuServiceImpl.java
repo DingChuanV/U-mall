@@ -4,6 +4,7 @@ package com.uin.ware.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.uin.to.SkuHasStcokVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import com.uin.utils.R;
@@ -17,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service("wareSkuService")
 public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> implements WareSkuService {
@@ -79,6 +81,19 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             //如果有就是更新操作
             skuDao.updateStock(skuId, wareId, skuNum);
         }
+    }
+
+    @Override
+    public List<SkuHasStcokVo> getSkuHasStocks(List<Long> ids) {
+        List<SkuHasStcokVo> skuHasStcokVos = ids.stream().map(id -> {
+            SkuHasStcokVo skuHasStcokVo = new SkuHasStcokVo();
+            skuHasStcokVo.setSkuId(id);
+            //查询当前的库存
+            Integer count = baseMapper.getTotalStock(id);
+            skuHasStcokVo.setHasStock(count == null ? false : count > 0);
+            return skuHasStcokVo;
+        }).collect(Collectors.toList());
+        return skuHasStcokVos;
     }
 
 }

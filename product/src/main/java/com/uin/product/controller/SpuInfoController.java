@@ -8,16 +8,10 @@ import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.uin.product.entity.SpuInfoEntity;
 import com.uin.product.service.SpuInfoService;
-
-
 
 
 /**
@@ -34,13 +28,24 @@ public class SpuInfoController {
     private SpuInfoService spuInfoService;
 
     /**
+     * 商品上架
+     * product/spuinfo/{spuId}/up
+     */
+    @PostMapping("/{spuId}/up")
+    public R upSpu(@PathVariable Long spuId) {
+        //商品上架主要是给ES中存储数据
+        spuInfoService.upSpuToES(spuId);
+        return R.ok();
+    }
+
+    /**
      * 列表
      */
     @RequestMapping("/list")
     /**
      *@RequiresPermissions("product:spuinfo:list")
      */
-    public R list(@RequestParam Map<String, Object> params){
+    public R list(@RequestParam Map<String, Object> params) {
         //PageUtils page = spuInfoService.queryPage(params);
         PageUtils page = spuInfoService.queryPageByCodition(params);
 
@@ -55,8 +60,8 @@ public class SpuInfoController {
     /**
      *@RequiresPermissions("product:spuinfo:info")
      */
-    public R info(@PathVariable("id") Long id){
-		SpuInfoEntity spuInfo = spuInfoService.getById(id);
+    public R info(@PathVariable("id") Long id) {
+        SpuInfoEntity spuInfo = spuInfoService.getById(id);
 
         return R.ok().put("spuInfo", spuInfo);
     }
@@ -68,8 +73,8 @@ public class SpuInfoController {
     /**
      *@RequiresPermissions("product:spuinfo:save")
      */
-    public R save(@RequestBody SpuSaveVo vo){
-		//spuInfoService.save(spuInfo);
+    public R save(@RequestBody SpuSaveVo vo) {
+        //spuInfoService.save(spuInfo);
         spuInfoService.saveSpuSaveVo(vo);
         return R.ok();
     }
@@ -81,8 +86,8 @@ public class SpuInfoController {
     /**
      *@RequiresPermissions("product:spuinfo:update")
      */
-    public R update(@RequestBody SpuInfoEntity spuInfo){
-		spuInfoService.updateById(spuInfo);
+    public R update(@RequestBody SpuInfoEntity spuInfo) {
+        spuInfoService.updateById(spuInfo);
 
         return R.ok();
     }
@@ -94,8 +99,8 @@ public class SpuInfoController {
     /**
      *@RequiresPermissions("product:spuinfo:delete")
      */
-    public R delete(@RequestBody Long[] ids){
-		spuInfoService.removeByIds(Arrays.asList(ids));
+    public R delete(@RequestBody Long[] ids) {
+        spuInfoService.removeByIds(Arrays.asList(ids));
 
         return R.ok();
     }

@@ -35,5 +35,8 @@ public interface AttrService extends IService<AttrEntity> {
     PageUtils getNoRelation(Map<String, Object> params, Long attrgroupId);
 
     void saveBatchRelation(List<AttrAttrgroupRelationEntity> relationEntities);
+
+    List<Long> selectSearchAttrIds(List<Long> list);
+
 }
 

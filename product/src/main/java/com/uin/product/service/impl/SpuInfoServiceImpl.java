@@ -4,13 +4,19 @@ package com.uin.product.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.uin.constant.ProductConstant;
 import com.uin.product.dao.SpuInfoDao;
 import com.uin.product.entity.*;
+import com.uin.product.feign.SearchFeignService;
 import com.uin.product.feign.SpuFeignService;
+import com.uin.product.feign.WareFeignService;
 import com.uin.product.service.*;
 import com.uin.product.vo.*;
+import com.uin.to.SkuHasStcokVo;
 import com.uin.to.SkuReductionTo;
 import com.uin.to.SpuBoundsTo;
+import com.uin.to.es.SpuEsTO;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import com.uin.utils.R;
@@ -22,9 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,9 +49,16 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     SkuImagesService skuImagesService;
     @Autowired
     SkuSaleAttrValueService skuSaleAttrValueService;
-
     @Autowired
     SpuFeignService spuFeignService;
+    @Autowired
+    BrandService brandService;
+    @Autowired
+    CategoryService categoryService;
+    @Autowired
+    WareFeignService wareFeignService;
+    @Autowired
+    SearchFeignService searchFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -204,6 +215,90 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public void upSpuToES(Long spuId) {
+
+        //1.根据当前的spuId查询出sku信息
+        List<SkuInfoEntity> skus = skuInfoService.getSkusById(spuId);
+
+        //查询当前sku的规格属性 可以被检索的规格属性
+        List<ProductAttrValueEntity> productAttrValueEntities = productAttrValueService.list(new QueryWrapper<ProductAttrValueEntity>()
+                .eq("spu_id", spuId));
+        List<Long> list = productAttrValueEntities.stream()
+                .map(attr -> {
+                    return attr.getAttrId();
+                }).collect(Collectors.toList());
+        List<Long> searchAttrIds = attrService.selectSearchAttrIds(list);
+
+        Set<Long> ids = new HashSet<>(searchAttrIds);
+
+        List<SpuEsTO.Attrs> attrList = productAttrValueEntities.stream().filter(item -> {
+            return ids.contains(item.getAttrId());
+        }).map(entity -> {
+            SpuEsTO.Attrs attrs = new SpuEsTO.Attrs();
+            BeanUtils.copyProperties(entity, attrs);
+            return attrs;
+        }).collect(Collectors.toList());
+
+        //远程服务调用
+        Map<Long, Boolean> stockMap = null;
+        try {
+            List<Long> longList = skus.stream().map(SkuInfoEntity::getSkuId).collect(Collectors.toList());
+            List<SkuHasStcokVo> skuHasStock = wareFeignService.getSkuHasStock(longList);
+            stockMap = skuHasStock.stream().collect(Collectors.toMap(SkuHasStcokVo::getSkuId,
+                    SkuHasStcokVo::getHasStock));
+        } catch (Exception e) {
+            log.error("远程调用库存服务失败，原因是{}", e);
+        }
+
+
+        //2.封装每个SKu的信息
+        Map<Long, Boolean> finalStockMap = stockMap;
+        List<SpuEsTO> collect = skus.stream().map(skuInfo -> {
+            //组装ES需要的数据
+            SpuEsTO spuEsTO = new SpuEsTO();
+            BeanUtils.copyProperties(skuInfo, spuEsTO);
+            //处理属性不一致的字段
+            spuEsTO.setSkuPrice(skuInfo.getPrice());
+            spuEsTO.setSkuImg(skuInfo.getSkuDefaultImg());
+
+            //远程调用--需要向库存服务发送请求，查询当前spuId的是否有库存
+            spuEsTO.setHasStock(finalStockMap == null ? false : finalStockMap.get(skuInfo.getSkuId()));
+
+            //热度评分
+            spuEsTO.setHotScore(0L);
+            //品牌和分类的名字
+            BrandEntity brandEntity = brandService.getById(spuEsTO.getBrandId());
+            if (brandEntity != null) {
+                spuEsTO.setBrandName(brandEntity.getName());
+                spuEsTO.setBrandImg(brandEntity.getLogo());
+            }
+            CategoryEntity categoryEntity = categoryService.getById(spuEsTO.getCatalogId());
+            if (categoryEntity != null) {
+                spuEsTO.setCatalogName(categoryEntity.getName());
+            }
+            //设置检索属性
+            spuEsTO.setAttrs(attrList);
+            return spuEsTO;
+        }).collect(Collectors.toList());
+
+        //发给ES服务器
+        R r = searchFeignService.productStatusUp(collect);
+        if (r.getCode() == 0) {
+            this.baseMapper.upSpuStatus(spuId, ProductConstant.ProductStatusEnum.SPU_UP.getCode());
+        } else {
+            log.error("商品远程保存到ES失败");
+            //TODO 重复操作接口 接口幂等性的问题：如果远程服务失败，会有重试机制
+            /**
+             * feign的调用流程
+             * 1.调用构造数据，将对象转化为JSON
+             * 2.发送请求进行执行（执行成功会解码响应数据）
+             * 3.如果执行有错误，就会进行重试机制（默认重试5次）
+             */
+        }
+
     }
 
 }
