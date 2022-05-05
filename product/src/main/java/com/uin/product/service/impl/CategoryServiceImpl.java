@@ -88,6 +88,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         Collections.reverse(parentPath);
         return parentPath.toArray(new Long[parentPath.size()]);
     }
+
     @Transactional
     @Override
     public void updateRelationCatgory(CategoryEntity category) {
@@ -95,7 +96,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         this.updateById(category);
         Long catId = category.getCatId();
         String name = category.getName();
-        categoryBrandRelationService.updateCategory(catId,name);
+        categoryBrandRelationService.updateCategory(catId, name);
+    }
+
+    @Override
+    public List<CategoryEntity> getLevel_one() {
+        List<CategoryEntity> categoryEntityList = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+        return categoryEntityList;
     }
 
     //225 25 1

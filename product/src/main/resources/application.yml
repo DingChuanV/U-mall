@@ -2,6 +2,8 @@ server:
   port: 8081
 
 spring:
+  thymeleaf:
+    cache: false
   main:
     allow-circular-references: true
   datasource:

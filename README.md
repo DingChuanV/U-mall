@@ -793,10 +793,10 @@ import java.util.Map;
  * @date 2022/4/22/2:43 PM
  */
 @Slf4j
-//@ControllerAdvice(basePackages = "com.uin.product.controller")
+//@ControllerAdvice(basePackages = "com.uin.product.app")
 //@ResponseBody
 //效果一样
-@RestControllerAdvice(basePackages = "com.uin.product.controller")
+@RestControllerAdvice(basePackages = "com.uin.product.app")
 public class UinControllerAdvice {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public R handlerFormNumException(MethodArgumentNotValidException e) {
