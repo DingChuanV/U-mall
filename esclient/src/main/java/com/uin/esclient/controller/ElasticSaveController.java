@@ -33,7 +33,7 @@ public class ElasticSaveController {
             log.error("商品上架的ElasticSaveController的接口出现异常{}", e);
             return R.error(UinException.PRODUCT_UP_EXCEPTION.getCode(), UinException.PRODUCT_UP_EXCEPTION.getMessage());
         }
-        if (b) {
+        if (!b) {
             return R.ok();
         } else {
             return R.error(UinException.PRODUCT_UP_EXCEPTION.getCode(), UinException.PRODUCT_UP_EXCEPTION.getMessage());
