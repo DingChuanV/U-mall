@@ -33,4 +33,8 @@ public class IndexController {
         Map<String, List<Catalog2Vo>> map = categoryService.getCatalogJson();
         return map;
     }
+    @GetMapping("/hello")
+    public String hello(){
+        return "hello";
+    }
 }
