@@ -111,6 +111,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
+
         //1.查出所有一级分类的数据
         List<CategoryEntity> level_one = getLevel_one();
         //2.封装数据
