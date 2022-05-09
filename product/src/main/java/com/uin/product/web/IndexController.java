@@ -33,8 +33,17 @@ public class IndexController {
         Map<String, List<Catalog2Vo>> map = categoryService.getCatalogJson();
         return map;
     }
+
+    /**
+     * 简单服务
+     *
+     * @return java.lang.String
+     * @author wanglufei
+     * @date 2022/5/8 11:28 PM
+     */
     @GetMapping("/hello")
-    public String hello(){
+    @ResponseBody
+    public String hello() {
         return "hello";
     }
 }

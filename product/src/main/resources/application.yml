@@ -3,7 +3,7 @@ server:
 
 spring:
   thymeleaf:
-    cache: false
+    cache: true
   main:
     allow-circular-references: true
   datasource:
@@ -28,5 +28,5 @@ mybatis-plus:
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
 logging:
   level:
-    com.uin.product: debug
+    com.uin.product: error
 
