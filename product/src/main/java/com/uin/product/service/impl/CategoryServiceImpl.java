@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("categoryService")
@@ -109,6 +106,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return categoryEntityList;
     }
 
+    private static Map<String, Object> cacheMap = new HashMap<>();
+
     @Override
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
         /**
@@ -119,39 +118,49 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
          */
         List<CategoryEntity> entities = baseMapper.selectList(null);
 
-        //1.查出所有一级分类的数据
-        List<CategoryEntity> level_one = getParent_cid(entities, 0L);
-        //2.封装数据
-        Map<String, List<Catalog2Vo>> stringListMap = level_one.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
-            //1.每一个一级分类，查到这个一级分类的二级分类
-            List<CategoryEntity> categoryEntityList = getParent_cid(entities, value.getCatId());
-            List<Catalog2Vo> catalog2Vos = null;
-            if (categoryEntityList != null) {
-                catalog2Vos = categoryEntityList.stream().map(l2 -> {
-                    //2.二级菜单封装
-                    Catalog2Vo catalog2Vo = new Catalog2Vo(value.getCatId().toString(), null,
-                            l2.getCatId().toString(),
-                            l2.getName());
-                    //3.分装三级菜单 找当前二级菜单的三级菜单
-                    List<CategoryEntity> categoryEntities = getParent_cid(entities, l2.getCatId());
-                    if (categoryEntities != null) {
-                        List<Catalog2Vo.Catalog3Vo> vos = categoryEntities
-                                .stream()
-                                .map(l3 -> {
-                                    Catalog2Vo.Catalog3Vo catalog3Vo =
-                                            new Catalog2Vo.Catalog3Vo(l2.getCatId().toString(),
-                                                    l3.getCatId().toString(), l3.getName());
-                                    return catalog3Vo;
-                                }).collect(Collectors.toList());
-                        catalog2Vo.setCatalog3List(vos);
-                    }
-                    return catalog2Vo;
-                }).collect(Collectors.toList());
-            }
-            return catalog2Vos;
-        }));
-
-        return stringListMap;
+        /**
+         * 使用Map<String,Object>来做缓存
+         */
+        // 如果有，就用缓存的
+        Map<String, List<Catalog2Vo>> catalogJson = (Map<String, List<Catalog2Vo>>) cacheMap.get("catalogJson");
+        //  如果缓存中没有，就去查询数据库
+        if (catalogJson.get("catalogJson") == null) {
+            //1.查出所有一级分类的数据
+            List<CategoryEntity> level_one = getParent_cid(entities, 0L);
+            //2.封装数据
+            Map<String, List<Catalog2Vo>> stringListMap = level_one.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
+                //1.每一个一级分类，查到这个一级分类的二级分类
+                List<CategoryEntity> categoryEntityList = getParent_cid(entities, value.getCatId());
+                List<Catalog2Vo> catalog2Vos = null;
+                if (categoryEntityList != null) {
+                    catalog2Vos = categoryEntityList.stream().map(l2 -> {
+                        //2.二级菜单封装
+                        Catalog2Vo catalog2Vo = new Catalog2Vo(value.getCatId().toString(), null,
+                                l2.getCatId().toString(),
+                                l2.getName());
+                        //3.分装三级菜单 找当前二级菜单的三级菜单
+                        List<CategoryEntity> categoryEntities = getParent_cid(entities, l2.getCatId());
+                        if (categoryEntities != null) {
+                            List<Catalog2Vo.Catalog3Vo> vos = categoryEntities
+                                    .stream()
+                                    .map(l3 -> {
+                                        Catalog2Vo.Catalog3Vo catalog3Vo =
+                                                new Catalog2Vo.Catalog3Vo(l2.getCatId().toString(),
+                                                        l3.getCatId().toString(), l3.getName());
+                                        return catalog3Vo;
+                                    }).collect(Collectors.toList());
+                            catalog2Vo.setCatalog3List(vos);
+                        }
+                        return catalog2Vo;
+                    }).collect(Collectors.toList());
+                }
+                return catalog2Vos;
+            }));
+            //查到之后给本地缓存中放一份
+            catalogJson.put("catalogJson", (List<Catalog2Vo>) stringListMap);
+            return stringListMap;
+        }
+        return catalogJson;
     }
 
     private List<CategoryEntity> getParent_cid(List<CategoryEntity> entities, Long parent_cid) {
