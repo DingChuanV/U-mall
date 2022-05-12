@@ -1,10 +1,11 @@
 package com.uin.product.service.impl;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.uin.product.dao.CategoryBrandRelationDao;
 import com.uin.product.dao.CategoryDao;
 import com.uin.product.entity.CategoryEntity;
 import com.uin.product.service.CategoryBrandRelationService;
@@ -12,8 +13,8 @@ import com.uin.product.service.CategoryService;
 import com.uin.product.vo.Catalog2Vo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -28,6 +29,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     CategoryBrandRelationService categoryBrandRelationService;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -110,9 +113,26 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * 本地缓存
      */
     //private static Map<String, Object> cacheMap = new HashMap<>();
-
     @Override
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
+        //1.加入redis缓存 缓存中存的数据都是json数据格式
+        //json数据跨平台 兼容性好
+        String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+        if (StringUtils.isEmpty(catalogJson)) {
+            //2.如果缓存中没有的话 就去数据库查询
+            Map<String, List<Catalog2Vo>> fromDB = getCatalogJsonFromDB();
+            //将从数据库查询出来的数据转为json放到缓存中
+            stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(fromDB));
+        }
+        //需要注意的是 给缓存中放的是json数据 但是我们要返回给前台的是对象 所以还要转换过来
+        //其实这个操作也就是序列化和反序列化的过程
+        Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson,
+                new TypeReference<Map<String, List<Catalog2Vo>>>(){});
+        return result;
+    }
+
+    //从数据库查询并封装数据的过程
+    public Map<String, List<Catalog2Vo>> getCatalogJsonFromDB() {
         /**
          * 优化三级分类的数据的获取
          *  优化步骤
@@ -126,7 +146,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
          */
         // 如果有，就用缓存的
         //Map<String, List<Catalog2Vo>> catalogJson =
-                //(Map<String, List<Catalog2Vo>>) cacheMap.get("catalogJson");
+        //(Map<String, List<Catalog2Vo>>) cacheMap.get("catalogJson");
 
         //  如果缓存中没有，就去查询数据库
 //        if (catalogJson.get("catalogJson") == null) {
