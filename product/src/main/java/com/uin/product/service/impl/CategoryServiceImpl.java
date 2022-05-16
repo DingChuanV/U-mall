@@ -127,7 +127,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
         if (StringUtils.isEmpty(catalogJson)) {
             //2.如果缓存中没有的话 就去数据库查询
-
+            System.out.println("没有命中缓存。。。查询数据库");
             Map<String, List<Catalog2Vo>> fromDB = getCatalogJsonFromDB();
             //将从数据库查询出来的数据转为json放到缓存中
             //stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(fromDB));
@@ -136,6 +136,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                     1,
                     TimeUnit.DAYS);
         }
+        System.out.println("命中了缓存");
         //需要注意的是 给缓存中放的是json数据 但是我们要返回给前台的是对象 所以还要转换过来
         //其实这个操作也就是序列化和反序列化的过程
         Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson,
@@ -159,6 +160,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
          *   2.加锁的方式，如果在单体项目中，加锁的分布式还可以，如果是分布式下加锁的话
          */
         synchronized (this) {
+            System.out.println("拿到了锁");
             /**
              * 得到锁以后，我们应该在去缓存中确定一次，如果没有才去数据库中查询
              */
@@ -174,6 +176,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                         });
                 return result;
             }
+            //使用本地锁的测试
+            System.out.println("没有走缓存，准备去查询数据库");
             /**
              * 1.将数据库中的多次查询变为一次查询
              */
@@ -223,6 +227,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             }));
             //查到之后给本地缓存中放一份
             //catalogJson.put("catalogJson", (List<Catalog2Vo>) stringListMap);
+            String s = JSON.toJSONString(stringListMap);
+            stringRedisTemplate.opsForValue().set("catalogJson", s, 1, TimeUnit.DAYS);
             return stringListMap;
             //return catalogJson;
         }
