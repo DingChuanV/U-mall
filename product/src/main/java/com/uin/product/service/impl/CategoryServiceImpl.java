@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service("categoryService")
@@ -59,18 +60,19 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         List<CategoryEntity> list = baseMapper.selectList(null);
 
         // 先找到一级分类
-        List<CategoryEntity> level1menu = list.stream().filter((categoryEntity) -> {
-            //找到一级分类
-            return categoryEntity.getParentCid() == 0;
-        }).map((menu) -> {
-            //进行映射 递归查询
-            menu.setChildren(getChildrens(menu, list));
-            return menu;
-        }).sorted((menu1, menu2) -> {
-            //排序
-            return (menu1.getSort() == null ? 0 : menu1.getSort()) - (menu2.getSort() == null ?
-                    0 : menu2.getSort());
-        }).collect(Collectors.toList());
+        List<CategoryEntity> level1menu = list.stream()
+                .filter((categoryEntity) -> {
+                    //找到一级分类
+                    return categoryEntity.getParentCid() == 0;
+                }).map((menu) -> {
+                    //进行映射 递归查询
+                    menu.setChildren(getChildrens(menu, list));
+                    return menu;
+                }).sorted((menu1, menu2) -> {
+                    //排序
+                    return (menu1.getSort() == null ? 0 : menu1.getSort()) - (menu2.getSort() == null ?
+                            0 : menu2.getSort());
+                }).collect(Collectors.toList());
         return level1menu;
     }
 
@@ -91,7 +93,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     @Transactional
-
     @Override
     public void updateRelationCatgory(CategoryEntity category) {
         //更新自己
@@ -113,6 +114,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * 本地缓存
      */
     //private static Map<String, Object> cacheMap = new HashMap<>();
+
+    /**
+     * 解决缓存穿透--将null结果缓存，
+     * 并设置过期随机时间，来解决缓存雪崩，加锁，防止缓存击穿的问题
+     */
+
     @Override
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
         //1.加入redis缓存 缓存中存的数据都是json数据格式
@@ -120,14 +127,20 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
         if (StringUtils.isEmpty(catalogJson)) {
             //2.如果缓存中没有的话 就去数据库查询
+
             Map<String, List<Catalog2Vo>> fromDB = getCatalogJsonFromDB();
             //将从数据库查询出来的数据转为json放到缓存中
-            stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(fromDB));
+            //stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(fromDB));
+            //来设置key的过期时间(随机)
+            stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(fromDB),
+                    1,
+                    TimeUnit.DAYS);
         }
         //需要注意的是 给缓存中放的是json数据 但是我们要返回给前台的是对象 所以还要转换过来
         //其实这个操作也就是序列化和反序列化的过程
         Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson,
-                new TypeReference<Map<String, List<Catalog2Vo>>>(){});
+                new TypeReference<Map<String, List<Catalog2Vo>>>() {
+                });
         return result;
     }
 
@@ -139,58 +152,86 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
          *   1. 先从数据库从查询所有
          *   2. 根据查询的结果，在挑选出
          */
-        List<CategoryEntity> entities = baseMapper.selectList(null);
-
         /**
-         * 使用Map<String,Object>来做缓存
+         * 需要加锁的位置 来解决缓存击穿的问题
+         * 只要是同一把锁，就能锁住需要这个锁的线程
+         *   1.使用synchronized(this)，锁的是当前对象,SpringBoot所有组件在容器中都是单例的
+         *   2.加锁的方式，如果在单体项目中，加锁的分布式还可以，如果是分布式下加锁的话
          */
-        // 如果有，就用缓存的
-        //Map<String, List<Catalog2Vo>> catalogJson =
-        //(Map<String, List<Catalog2Vo>>) cacheMap.get("catalogJson");
+        synchronized (this) {
+            /**
+             * 得到锁以后，我们应该在去缓存中确定一次，如果没有才去数据库中查询
+             */
 
-        //  如果缓存中没有，就去查询数据库
+            /**
+             * TODO 使用本地锁（只能锁住我们当前进程里的资源），在分布式的情况下，我们想要合理的控制资源，就必须使用分布式锁
+             */
+            String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+            //如果缓存中不是空的，我们将这个json数据格式转换成对象，就直接返回
+            if (!StringUtils.isEmpty(catalogJson)) {
+                Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson,
+                        new TypeReference<Map<String, List<Catalog2Vo>>>() {
+                        });
+                return result;
+            }
+            /**
+             * 1.将数据库中的多次查询变为一次查询
+             */
+            List<CategoryEntity> entities = baseMapper.selectList(null);
+
+            /**
+             * 使用Map<String,Object>来做缓存
+             */
+            // 如果有，就用缓存的
+            //Map<String, List<Catalog2Vo>> catalogJson =
+            //(Map<String, List<Catalog2Vo>>) cacheMap.get("catalogJson");
+
+            //  如果缓存中没有，就去查询数据库
 //        if (catalogJson.get("catalogJson") == null) {
 //
 //        }
-        //1.查出所有一级分类的数据
-        List<CategoryEntity> level_one = getParent_cid(entities, 0L);
-        //2.封装数据
-        Map<String, List<Catalog2Vo>> stringListMap = level_one.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
-            //1.每一个一级分类，查到这个一级分类的二级分类
-            List<CategoryEntity> categoryEntityList = getParent_cid(entities, value.getCatId());
-            List<Catalog2Vo> catalog2Vos = null;
-            if (categoryEntityList != null) {
-                catalog2Vos = categoryEntityList.stream().map(l2 -> {
-                    //2.二级菜单封装
-                    Catalog2Vo catalog2Vo = new Catalog2Vo(value.getCatId().toString(), null,
-                            l2.getCatId().toString(),
-                            l2.getName());
-                    //3.分装三级菜单 找当前二级菜单的三级菜单
-                    List<CategoryEntity> categoryEntities = getParent_cid(entities, l2.getCatId());
-                    if (categoryEntities != null) {
-                        List<Catalog2Vo.Catalog3Vo> vos = categoryEntities
-                                .stream()
-                                .map(l3 -> {
-                                    Catalog2Vo.Catalog3Vo catalog3Vo =
-                                            new Catalog2Vo.Catalog3Vo(l2.getCatId().toString(),
-                                                    l3.getCatId().toString(), l3.getName());
-                                    return catalog3Vo;
-                                }).collect(Collectors.toList());
-                        catalog2Vo.setCatalog3List(vos);
-                    }
-                    return catalog2Vo;
-                }).collect(Collectors.toList());
-            }
-            return catalog2Vos;
-        }));
-        //查到之后给本地缓存中放一份
-        //catalogJson.put("catalogJson", (List<Catalog2Vo>) stringListMap);
-        return stringListMap;
-        //return catalogJson;
+            //1.查出所有一级分类的数据
+            List<CategoryEntity> level_one = getParent_cid(entities, 0L);
+            //2.封装数据
+            Map<String, List<Catalog2Vo>> stringListMap = level_one.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
+                //1.每一个一级分类，查到这个一级分类的二级分类
+                List<CategoryEntity> categoryEntityList = getParent_cid(entities, value.getCatId());
+                List<Catalog2Vo> catalog2Vos = null;
+                if (categoryEntityList != null) {
+                    catalog2Vos = categoryEntityList.stream().map(l2 -> {
+                        //2.二级菜单封装
+                        Catalog2Vo catalog2Vo = new Catalog2Vo(value.getCatId().toString(), null,
+                                l2.getCatId().toString(),
+                                l2.getName());
+                        //3.分装三级菜单 找当前二级菜单的三级菜单
+                        List<CategoryEntity> categoryEntities = getParent_cid(entities, l2.getCatId());
+                        if (categoryEntities != null) {
+                            List<Catalog2Vo.Catalog3Vo> vos = categoryEntities
+                                    .stream()
+                                    .map(l3 -> {
+                                        Catalog2Vo.Catalog3Vo catalog3Vo =
+                                                new Catalog2Vo.Catalog3Vo(l2.getCatId().toString(),
+                                                        l3.getCatId().toString(), l3.getName());
+                                        return catalog3Vo;
+                                    }).collect(Collectors.toList());
+                            catalog2Vo.setCatalog3List(vos);
+                        }
+                        return catalog2Vo;
+                    }).collect(Collectors.toList());
+                }
+                return catalog2Vos;
+            }));
+            //查到之后给本地缓存中放一份
+            //catalogJson.put("catalogJson", (List<Catalog2Vo>) stringListMap);
+            return stringListMap;
+            //return catalogJson;
+        }
     }
 
     private List<CategoryEntity> getParent_cid(List<CategoryEntity> entities, Long parent_cid) {
-        List<CategoryEntity> collect = entities.stream().filter(item -> item.getParentCid() == parent_cid).collect(Collectors.toList());
+        List<CategoryEntity> collect = entities.stream()
+                .filter(item -> item.getParentCid() == parent_cid)
+                .collect(Collectors.toList());
         return collect;
 //        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", value.getCatId()));
     }

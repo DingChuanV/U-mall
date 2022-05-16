@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -33,5 +34,10 @@ class RedisTest {
         ops.set("uin", "niupi_" + UUID.randomUUID());
         //查询操作
         System.out.println(ops.get("uin"));
+    }
+
+    @Test
+    public void test2(){
+
     }
 }
