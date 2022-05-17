@@ -15,6 +15,7 @@ import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -128,7 +129,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         if (StringUtils.isEmpty(catalogJson)) {
             //2.如果缓存中没有的话 就去数据库查询
             System.out.println("没有命中缓存。。。查询数据库");
-            Map<String, List<Catalog2Vo>> fromDB = getCatalogJsonFromDB();
+            //Map<String, List<Catalog2Vo>> fromDB = getCatalogJsonFromDB(); 使用本地锁
+            Map<String, List<Catalog2Vo>> fromDB = getCatalogJsonFromDB(); //使用redis分布式锁
             //将从数据库查询出来的数据转为json放到缓存中
             //stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(fromDB));
             //来设置key的过期时间(随机)
@@ -145,6 +147,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return result;
     }
 
+    /**
+     * 使用本地锁
+     */
     //从数据库查询并封装数据的过程
     public Map<String, List<Catalog2Vo>> getCatalogJsonFromDB() {
         /**
@@ -164,7 +169,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             /**
              * 得到锁以后，我们应该在去缓存中确定一次，如果没有才去数据库中查询
              */
-
             /**
              * TODO 使用本地锁（只能锁住我们当前进程里的资源），在分布式的情况下，我们想要合理的控制资源，就必须使用分布式锁
              */
@@ -234,12 +238,121 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
     }
 
+    /**
+     * 使用分布式锁
+     * 1.使用setnx
+     */
+    public Map<String, List<Catalog2Vo>> getCatalogJsonFromDBWithRedisSetnx() {
+        /**
+         * 怎么使用分布式锁
+         *  1.占坑
+         */
+        //Boolean lock = stringRedisTemplate.opsForValue().setIfAbsent("lock", "111");
+        /**
+         * 删除锁直接删除??? 如果由于业务时间很长，锁自己过期了，我们 直接删除，有可能把别人正在持有的锁删除了。
+         * 解决办法：占锁的时候，值指定为uuid，每个人匹配是自己 的锁才删除。
+         */
+        String token = UUID.randomUUID().toString();
+        /**
+         *  还有一种可能产生的问题，如果我们还没来的及给锁设置过期时间 就崩了 也会造成死锁
+         *  主要造成的原因是：我们的设置过期时间和加锁 他不是一个原子性的操作
+         *     在Redis总cli中有这样一个命令：set lock 111 EX 300 NX
+         *     意思就是set<lock,111> EX 过期时间300s 不存在才添加
+         */
+        Boolean lock = stringRedisTemplate.opsForValue().setIfAbsent("lock", token, 300, TimeUnit.SECONDS);
+        if (lock) {
+            //2.加锁成功 为了防止因为网路问题或者其他的问题 导致我们没有释放锁 造成死锁问题 我们需要设置锁的过期时间
+            stringRedisTemplate.expire("lock", 30, TimeUnit.SECONDS);
+            Map<String, List<Catalog2Vo>> fromDB = getFromDB();
+            //2.1 数据返回成功的我们还要解锁
+            //stringRedisTemplate.delete("lock");
+            //我们需要根据获取当前锁的线程 获取到它的value 来和一开始uuid来匹配 如果相等 说明在释放自己的锁
+            //String value = stringRedisTemplate.opsForValue().get("lock");
+            /**
+             * 如果在比较的前面（也就是去查询redis redis给我门返回数据的途中 我们redis中的数据过期了 那别人就有机会进来 重新占了个锁）
+             * 此时别人也叫lock，但是value，是不一样的值 那我们此时 在走我们判断的业务逻辑 进不去 就又造成了 死锁
+             * 造成的主要原因是：他们不是一个原子性的操作（获取值和和值进行对比）
+             * 解决办法：删除锁必须保证原子性。使用redis+Lua脚本完成
+             */
+            //if (value.equals(token)) {
+            //说明在释放自己的锁 那就放心释放
+            //stringRedisTemplate.delete("lock");
+            //}
+            //Lua脚本
+            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+            /**
+             * 删除成功返回 1 不成功0
+             */
+            Integer result = stringRedisTemplate.execute(new DefaultRedisScript<Integer>(script, Integer.class),
+                    Arrays.asList("lock"), token);
+            return fromDB;
+        } else {
+            //3.加锁失败（等一会儿，再去重试） 类似与自旋
+            //可以设置休眠100ms在重试
+            return getCatalogJsonFromDBWithRedisSetnx();
+        }
+    }
+
+    //抽取出来的方法
+    private Map<String, List<Catalog2Vo>> getFromDB() {
+        String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+        //如果缓存中不是空的，我们将这个json数据格式转换成对象，就直接返回
+        if (!StringUtils.isEmpty(catalogJson)) {
+            Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson,
+                    new TypeReference<Map<String, List<Catalog2Vo>>>() {
+                    });
+            return result;
+        }
+        /**
+         * 1.将数据库中的多次查询变为一次查询
+         */
+        List<CategoryEntity> entities = baseMapper.selectList(null);
+
+        //1.查出所有一级分类的数据
+        List<CategoryEntity> level_one = getParent_cid(entities, 0L);
+        //2.封装数据
+        Map<String, List<Catalog2Vo>> stringListMap = level_one.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
+            //1.每一个一级分类，查到这个一级分类的二级分类
+            List<CategoryEntity> categoryEntityList = getParent_cid(entities, value.getCatId());
+            List<Catalog2Vo> catalog2Vos = null;
+            if (categoryEntityList != null) {
+                catalog2Vos = categoryEntityList.stream().map(l2 -> {
+                    //2.二级菜单封装
+                    Catalog2Vo catalog2Vo = new Catalog2Vo(value.getCatId().toString(), null,
+                            l2.getCatId().toString(),
+                            l2.getName());
+                    //3.分装三级菜单 找当前二级菜单的三级菜单
+                    List<CategoryEntity> categoryEntities = getParent_cid(entities, l2.getCatId());
+                    if (categoryEntities != null) {
+                        List<Catalog2Vo.Catalog3Vo> vos = categoryEntities
+                                .stream()
+                                .map(l3 -> {
+                                    Catalog2Vo.Catalog3Vo catalog3Vo =
+                                            new Catalog2Vo.Catalog3Vo(l2.getCatId().toString(),
+                                                    l3.getCatId().toString(), l3.getName());
+                                    return catalog3Vo;
+                                }).collect(Collectors.toList());
+                        catalog2Vo.setCatalog3List(vos);
+                    }
+                    return catalog2Vo;
+                }).collect(Collectors.toList());
+            }
+            return catalog2Vos;
+        }));
+        //查到之后给本地缓存中放一份
+        //catalogJson.put("catalogJson", (List<Catalog2Vo>) stringListMap);
+        String s = JSON.toJSONString(stringListMap);
+        stringRedisTemplate.opsForValue().set("catalogJson", s, 1, TimeUnit.DAYS);
+        return stringListMap;
+    }
+
     private List<CategoryEntity> getParent_cid(List<CategoryEntity> entities, Long parent_cid) {
         List<CategoryEntity> collect = entities.stream()
                 .filter(item -> item.getParentCid() == parent_cid)
                 .collect(Collectors.toList());
         return collect;
-//        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", value.getCatId()));
+        //return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid",
+        //value.getCatId()));
     }
 
     //225 25 1
