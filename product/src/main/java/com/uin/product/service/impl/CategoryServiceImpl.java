@@ -249,12 +249,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
          */
         //Boolean lock = stringRedisTemplate.opsForValue().setIfAbsent("lock", "111");
         /**
-         * 删除锁直接删除??? 如果由于业务时间很长，锁自己过期了，我们 直接删除，有可能把别人正在持有的锁删除了。
+         * 5.删除锁直接删除??? 如果由于业务时间很长，锁自己过期了，我们 直接删除，有可能把别人正在持有的锁删除了。
          * 解决办法：占锁的时候，值指定为uuid，每个人匹配是自己 的锁才删除。
          */
         String token = UUID.randomUUID().toString();
         /**
-         *  还有一种可能产生的问题，如果我们还没来的及给锁设置过期时间 就崩了 也会造成死锁
+         *  4.还有一种可能产生的问题，如果我们还没来的及给锁设置过期时间 就崩了 也会造成死锁
          *  主要造成的原因是：我们的设置过期时间和加锁 他不是一个原子性的操作
          *     在Redis总cli中有这样一个命令：set lock 111 EX 300 NX
          *     意思就是set<lock,111> EX 过期时间300s 不存在才添加
@@ -263,13 +263,20 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         if (lock) {
             //2.加锁成功 为了防止因为网路问题或者其他的问题 导致我们没有释放锁 造成死锁问题 我们需要设置锁的过期时间
             stringRedisTemplate.expire("lock", 30, TimeUnit.SECONDS);
-            Map<String, List<Catalog2Vo>> fromDB = getFromDB();
+            Map<String, List<Catalog2Vo>> fromDB = null;
+
+            try {
+                fromDB = getFromDB();
+            } finally {
+                String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+                Integer result = stringRedisTemplate.execute(new DefaultRedisScript<Integer>(script, Integer.class), Arrays.asList("lock"), token);
+            }
             //2.1 数据返回成功的我们还要解锁
             //stringRedisTemplate.delete("lock");
             //我们需要根据获取当前锁的线程 获取到它的value 来和一开始uuid来匹配 如果相等 说明在释放自己的锁
             //String value = stringRedisTemplate.opsForValue().get("lock");
             /**
-             * 如果在比较的前面（也就是去查询redis redis给我门返回数据的途中 我们redis中的数据过期了 那别人就有机会进来 重新占了个锁）
+             * 6.如果在比较的前面（也就是去查询redis redis给我门返回数据的途中 我们redis中的数据过期了 那别人就有机会进来 重新占了个锁）
              * 此时别人也叫lock，但是value，是不一样的值 那我们此时 在走我们判断的业务逻辑 进不去 就又造成了 死锁
              * 造成的主要原因是：他们不是一个原子性的操作（获取值和和值进行对比）
              * 解决办法：删除锁必须保证原子性。使用redis+Lua脚本完成
@@ -279,17 +286,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             //stringRedisTemplate.delete("lock");
             //}
             //Lua脚本
-            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+            //String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call" +
+            //"('del', KEYS[1]) else return 0 end";
             /**
              * 删除成功返回 1 不成功0
              * Lua脚本解锁保证原子性操作
              */
-            Integer result = stringRedisTemplate.execute(new DefaultRedisScript<Integer>(script, Integer.class),
-                    Arrays.asList("lock"), token);
+            //Integer result = stringRedisTemplate.execute(new DefaultRedisScript<Integer>(script,
+            //Integer.class),
+            //Arrays.asList("lock"), token);
             return fromDB;
         } else {
             //3.加锁失败（等一会儿，再去重试） 类似与自旋
             //可以设置休眠100ms在重试
+
+            /**
+             * 7.保证加锁【占位+过期时间】和删除锁【判断+删除】的原子性。 更难的事情，锁的自动续期
+             * 也就是我们的业务还没执行完 我们的锁过期了 那不就bbq了。就好比 我们在网吧 我们正打团 机子给我们提示余额用完了
+             * 给我们锁机了。
+             * 所以为了解决这个问题：我们需要解决在业务的执行期间 需要给锁自动续期
+             * 最简单的方法就是过期时间 给多一点（合理的业务时间）使用try{} finally{}
+             */
             return getCatalogJsonFromDBWithRedisSetnx();
         }
     }
