@@ -261,6 +261,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
          */
         Boolean lock = stringRedisTemplate.opsForValue().setIfAbsent("lock", token, 300, TimeUnit.SECONDS);
         if (lock) {
+            System.out.println("获取分布式锁成功，执行业务中....");
             //2.加锁成功 为了防止因为网路问题或者其他的问题 导致我们没有释放锁 造成死锁问题 我们需要设置锁的过期时间
             stringRedisTemplate.expire("lock", 30, TimeUnit.SECONDS);
             Map<String, List<Catalog2Vo>> fromDB = null;
@@ -269,7 +270,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                 fromDB = getFromDB();
             } finally {
                 String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-                Integer result = stringRedisTemplate.execute(new DefaultRedisScript<Integer>(script, Integer.class), Arrays.asList("lock"), token);
+                Long result = stringRedisTemplate.execute(new DefaultRedisScript<Long>(script,
+                        Long.class), Arrays.asList("lock"), token);
             }
             //2.1 数据返回成功的我们还要解锁
             //stringRedisTemplate.delete("lock");
@@ -298,8 +300,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             return fromDB;
         } else {
             //3.加锁失败（等一会儿，再去重试） 类似与自旋
-            //可以设置休眠100ms在重试
-
             /**
              * 7.保证加锁【占位+过期时间】和删除锁【判断+删除】的原子性。 更难的事情，锁的自动续期
              * 也就是我们的业务还没执行完 我们的锁过期了 那不就bbq了。就好比 我们在网吧 我们正打团 机子给我们提示余额用完了
@@ -307,6 +307,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
              * 所以为了解决这个问题：我们需要解决在业务的执行期间 需要给锁自动续期
              * 最简单的方法就是过期时间 给多一点（合理的业务时间）使用try{} finally{}
              */
+            System.out.println("获取分布式锁失败，自旋等待中....");
+            //可以设置休眠100ms在重试
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             return getCatalogJsonFromDBWithRedisSetnx();
         }
     }
