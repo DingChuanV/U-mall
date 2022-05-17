@@ -282,6 +282,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
             /**
              * 删除成功返回 1 不成功0
+             * Lua脚本解锁保证原子性操作
              */
             Integer result = stringRedisTemplate.execute(new DefaultRedisScript<Integer>(script, Integer.class),
                     Arrays.asList("lock"), token);
