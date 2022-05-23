@@ -4,22 +4,24 @@ import com.sun.corba.se.spi.ior.ObjectKey;
 import com.uin.product.entity.CategoryEntity;
 import com.uin.product.service.CategoryService;
 import com.uin.product.vo.Catalog2Vo;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
+import org.redisson.client.RedisClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Controller
 public class IndexController {
     @Autowired
     CategoryService categoryService;
+    @Autowired
+    RedisTemplate redisTemplate;
     @Autowired
     RedissonClient redissonClient;
 
@@ -76,4 +78,83 @@ public class IndexController {
         }
         return "hello";
     }
+
+    @ResponseBody
+    @PostMapping("/write")
+    public String write() {
+        RReadWriteLock readWriteLock = redissonClient.getReadWriteLock("write_lock");
+        String s = "";
+        //写锁
+        RLock lock = readWriteLock.writeLock();
+        try {
+            s = UUID.randomUUID().toString();
+            Thread.sleep(30000);
+            redisTemplate.opsForValue().set("writeValue", s);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+        return s;
+    }
+
+    @ResponseBody
+    @PostMapping("/read")
+    public String read() {
+        RReadWriteLock readWriteLock = redissonClient.getReadWriteLock("write_lock");
+        String s = "";
+        //读锁
+        RLock lock = readWriteLock.readLock();
+        try {
+            s = UUID.randomUUID().toString();
+            Thread.sleep(30000);
+            s = (String) redisTemplate.opsForValue().get("writeValue");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+        return s;
+    }
+
+    /**
+     * 车库停车
+     * 3车位
+     * 信号量可以用来做限流
+     */
+    @ResponseBody
+    @RequestMapping("/park")
+    public String park() throws InterruptedException {
+        RSemaphore park = redissonClient.getSemaphore("park");
+        park.acquire();
+        //park.tryAcquire();
+        return "ok";
+    }
+
+    @ResponseBody
+    @RequestMapping("/go")
+    public String go() throws InterruptedException {
+        RSemaphore park = redissonClient.getSemaphore("park");
+        park.release();
+        return "ok";
+    }
+
+    @ResponseBody
+    @RequestMapping("/lockDoor")
+    public String lockDoor() throws InterruptedException {
+        RCountDownLatch door = redissonClient.getCountDownLatch("door");
+        door.trySetCount(5);
+        door.await();
+        return "放假了";
+    }
+
+    @ResponseBody
+    @RequestMapping("/goG/{id}")
+    public String goG(@PathVariable int id) throws InterruptedException {
+        RCountDownLatch door = redissonClient.getCountDownLatch("door");
+        door.countDown();
+        return "走了" + id;
+    }
+
+
 }
