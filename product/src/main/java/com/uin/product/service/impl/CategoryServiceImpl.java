@@ -13,7 +13,10 @@ import com.uin.product.service.CategoryService;
 import com.uin.product.vo.Catalog2Vo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     CategoryBrandRelationService categoryBrandRelationService;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    RedissonClient redissonClient;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -103,6 +108,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         categoryBrandRelationService.updateCategory(catId, name);
     }
 
+    /**
+     * @Cacheable() 需要指定我们的缓存数据放到哪里（缓存分区(按照业务的类型区分)）
+     * 就好像Spring-cache是我们的陕西省，@Cacheable({"xian_cache"})，我们的缓存数据要放到西安。
+     */
+    @Cacheable(value = {"catalog"}, key = "'cataloglevel_one'")
+    //代表当前方法返回结果需要被缓存，如果缓存中有，就不缓存，如果没有，就缓存
     @Override
     public List<CategoryEntity> getLevel_one() {
         long l = System.currentTimeMillis();
@@ -317,6 +328,31 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             return getCatalogJsonFromDBWithRedisSetnx();
         }
     }
+
+    /**
+     * 使用redisson分布式锁
+     */
+    public Map<String, List<Catalog2Vo>> getCatalogJsonFromDBWithRedisson() {
+        /**
+         * 怎么使用分布式锁
+         *  1.占坑
+         *  需要注意锁的名字。锁的粒度，越细越快
+         *  锁的粒度：具体缓存的是某个数据
+         */
+        RLock lock = redissonClient.getLock("catalogJson-Lock");
+        //加锁
+        lock.lock();
+        Map<String, List<Catalog2Vo>> fromDB = null;
+
+        try {
+            fromDB = getFromDB();
+        } finally {
+            //释放锁
+            lock.unlock();
+        }
+        return fromDB;
+    }
+
 
     //抽取出来的方法
     private Map<String, List<Catalog2Vo>> getFromDB() {
