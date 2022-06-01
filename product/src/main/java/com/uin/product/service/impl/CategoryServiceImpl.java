@@ -119,7 +119,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * @Cacheable() 需要指定我们的缓存数据放到哪里（缓存分区(按照业务的类型区分)）
      * 就好像Spring-cache是我们的陕西省，@Cacheable({"xian_cache"})，我们的缓存数据要放到西安。
      */
-    @Cacheable(value = {"catalog"}, key = "#root.method.name")
+    @Cacheable(value = {"catalog"}, key = "#root.method.name",unless="#result == null")
     //代表当前方法返回结果需要被缓存，如果缓存中有，就不缓存，如果没有，就缓存
 
     @Override
@@ -141,7 +141,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      */
 
     @Override
-    @Cacheable(value = {"category"}, key = "#root.method.name")
+    @Cacheable(value = {"category"}, key = "#root.method.name",unless="#result == null")
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
         //1.加入redis缓存 缓存中存的数据都是json数据格式
         //json数据跨平台 兼容性好

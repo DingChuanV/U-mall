@@ -52,7 +52,12 @@ spring:
         - id: gulimall_host_route
           uri: lb://product
           predicates:
-            - Host=**.gulimall.com
+            - Host=gulimall.com
+
+        - id: gulimall_host_route_search
+          uri: lb://esclient
+          predicates:
+            - Host=search.gulimall.com
 
 
 #前端项目 都带上/api

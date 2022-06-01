@@ -5,12 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.checkerframework.checker.units.qual.C;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Catalog2Vo {
+public class Catalog2Vo implements Serializable {
     /**
      * 一级父分类的id
      */
@@ -27,7 +28,7 @@ public class Catalog2Vo {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class Catalog3Vo {
+    public static class Catalog3Vo implements Serializable{
         //二级分类的ID
         private String catalog2Id;
         //三级分类的id
