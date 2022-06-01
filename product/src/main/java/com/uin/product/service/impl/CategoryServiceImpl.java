@@ -16,7 +16,9 @@ import com.uin.utils.Query;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -98,6 +100,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return parentPath.toArray(new Long[parentPath.size()]);
     }
 
+    @CacheEvict(value = {"catalog"}, key = "'cataloglevel_one'")   //删除指定区域的缓存  针对缓存失效模式
+    @Caching(evict = {
+            @CacheEvict(value = {"catalog"}, key = "'cataloglevel_one'"),
+            @CacheEvict(value = {"catalog"}, key = "'getCatlogJson'")
+    })//使用组合注解 删除多个缓存
     @Transactional
     @Override
     public void updateRelationCatgory(CategoryEntity category) {
@@ -112,8 +119,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * @Cacheable() 需要指定我们的缓存数据放到哪里（缓存分区(按照业务的类型区分)）
      * 就好像Spring-cache是我们的陕西省，@Cacheable({"xian_cache"})，我们的缓存数据要放到西安。
      */
-    @Cacheable(value = {"catalog"}, key = "'cataloglevel_one'")
+    @Cacheable(value = {"catalog"}, key = "#root.method.name")
     //代表当前方法返回结果需要被缓存，如果缓存中有，就不缓存，如果没有，就缓存
+
     @Override
     public List<CategoryEntity> getLevel_one() {
         long l = System.currentTimeMillis();
@@ -133,6 +141,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      */
 
     @Override
+    @Cacheable(value = {"category"}, key = "#root.method.name")
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
         //1.加入redis缓存 缓存中存的数据都是json数据格式
         //json数据跨平台 兼容性好

@@ -13,7 +13,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 @EnableCaching
-@EnableConfigurationProperties(CacheProperties.class)
+@EnableConfigurationProperties(CacheProperties.class) //开启属性配置的绑定的功能
 public class MyCacheConfig {
     @Autowired
     CacheProperties cacheProperties;
@@ -29,7 +29,7 @@ public class MyCacheConfig {
         config.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()));
         // 自定义value的序列化
         config.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
-        // 去配置文件获取缓存的过期时间
+        // 去配置文件获取缓存的过期时间 配置配置文件中的过期时间生效
         CacheProperties.Redis redis = cacheProperties.getRedis();
         if (redis.getTimeToLive() != null) {
             config = config.entryTtl(redis.getTimeToLive());
