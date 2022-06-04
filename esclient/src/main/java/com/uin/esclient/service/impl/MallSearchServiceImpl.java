@@ -2,6 +2,7 @@ package com.uin.esclient.service.impl;
 
 import com.uin.esclient.service.MallSearchService;
 import com.uin.esclient.vo.SearchParams;
+import com.uin.esclient.vo.SearchResult;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,7 +18,7 @@ public class MallSearchServiceImpl implements MallSearchService {
      * @date 2022/6/4 11:08 AM
      */
     @Override
-    public Object search(SearchParams params) {
+    public SearchResult search(SearchParams params) {
 
         return null;
     }

@@ -1,7 +1,8 @@
 package com.uin.esclient.service;
 
 import com.uin.esclient.vo.SearchParams;
+import com.uin.esclient.vo.SearchResult;
 
 public interface MallSearchService {
-    Object search(SearchParams params);
+    SearchResult search(SearchParams params);
 }
