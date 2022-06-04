@@ -6,7 +6,7 @@ spring:
     host: 192.168.2.115
     port: 6379
   thymeleaf:
-    cache: true
+    cache: false
   main:
     allow-circular-references: true
   datasource:
