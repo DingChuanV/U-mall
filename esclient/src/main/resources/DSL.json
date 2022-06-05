@@ -1,0 +1,87 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "skuTitle": "Apple"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "catalogId": "225"
+          }
+        },
+        {
+          "terms": {
+            "brandId": [
+              "1",
+              "2",
+              "9"
+            ]
+          }
+        },
+        {
+          "nested": {
+            "path": "attrs",
+            "query": {
+              "bool": {
+                "must": [
+                  {
+                    "term": {
+                      "attrs.attrId": {
+                        "value": "15"
+                      }
+                    }
+                  },
+                  {
+                    "terms": {
+                      "attrs.attrValue": [
+                        "Apple",
+                        "2021"
+                      ]
+                    }
+                  },
+                  {
+                    "term": {
+                      "hasStock": {
+                        "value": "true"
+                      }
+                    }
+                  },
+                  {
+                    "range": {
+                      "skuPrice": {
+                        "gte": 10,
+                        "lte": 60000
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "sort": [
+    {
+      "FIELD": {
+        "order": "desc"
+      }
+    }
+  ],
+  "from": 0,
+  "size": 1,
+  "highlight": {
+    "pre_tags": ""
+  },
+  "aggs": {
+    "NAME": {
+      "AGG_TYPE": {}
+    }
+  }
+}
