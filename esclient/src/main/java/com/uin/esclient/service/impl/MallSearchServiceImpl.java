@@ -11,7 +11,12 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,31 +37,27 @@ public class MallSearchServiceImpl implements MallSearchService {
      * @date 2022/6/4 11:08 AM
      */
     @Override
-    public SearchResult search(SearchParams params) throws IOException {
+    public SearchResult search(SearchParams params) {
+
         //最终要返回的数据
         SearchResult result = null;
-        // 1.动态的构建出查询所需要的DSL语句
-        // 1.1 准备检索请求
-        SearchRequest searchRequest = buildSearchRequest(params);
-        // 1.2 执行检索请求
-        SearchResponse response = client.search(searchRequest, EsClientConfig.COMMON_OPTIONS);
-        result = buildSearchRequest(response);
-        // 1.3 分析响应数据成我们想要的格式
+        try {
+            // 1.动态的构建出查询所需要的DSL语句
+            // 1.1 准备检索请求
+            SearchRequest searchRequest = buildSearchRequest(params);
+            // 1.2 执行检索请求
+            SearchResponse response = null;
+            response = client.search(searchRequest, EsClientConfig.COMMON_OPTIONS);
+            result = buildSearchRequest(response);
+            return null;
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
 
-        return null;
+        // 1.3 聚合分析 分析响应数据成我们想要的格式
+        return result;
     }
 
-    /**
-     * 构建结果数据
-     *
-     * @param response
-     * @return com.uin.esclient.vo.SearchResult
-     * @author wanglufei
-     * @date 2022/6/5 8:52 PM
-     */
-    private SearchResult buildSearchRequest(SearchResponse response) {
-        return null;
-    }
 
     /**
      * 组装检索条件 请求
@@ -70,10 +71,10 @@ public class MallSearchServiceImpl implements MallSearchService {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         /**
          * 1.模糊匹配过滤（按照属性、分类、品牌、价格区间、库存）
-         * 3.排序
-         * 4.分页
-         * 5.高亮
-         * 6.聚合分析
+         * 2.排序
+         * 3.分页
+         * 4.高亮
+         * 5.聚合分析
          */
 
         //1.模糊匹配过滤（按照属性、分类、品牌、价格区间、库存）
@@ -140,10 +141,101 @@ public class MallSearchServiceImpl implements MallSearchService {
             }
             queryBuilder.filter(skuPrice);
         }
-
-
         searchSourceBuilder.query(queryBuilder);
-        new SearchRequest(new String[]{EsConstant.PRODUCT_INDEX}, searchSourceBuilder);
+
+        //2.排序
+        /**
+         * 排序条件
+         * 1.saleCount_desc
+         * 2.saleCount_asc
+         * 3.skuPrice_asc/desc
+         * 4.hotScore_asc/desc
+         */
+        //2.1 构建DSL语句
+        if (StringUtils.isNotEmpty(params.getSort())) {
+            String sort = params.getSort();
+            String[] s = sort.split("_");
+            SortOrder order = s[1].equalsIgnoreCase("asc") ? SortOrder.ASC : SortOrder.DESC;
+            searchSourceBuilder.sort(s[0], order);
+        }
+        //2.2 分页
+        /**
+         * pageNum 第1页 -->from:0 size 5
+         * pageNum 第2页 -->from:5 size 5
+         * pageNum 第3页 -->from:(pageNum-1)*size size 5
+         *
+         */
+        searchSourceBuilder.from((params.getPageNumber() - 1) * EsConstant.SIZE);
+        searchSourceBuilder.size(EsConstant.SIZE);
+
+        //2.3 高亮
+        if (StringUtils.isNotEmpty(params.getKeyword())) {
+            HighlightBuilder highlightBuilder = new HighlightBuilder();
+            highlightBuilder.field("skuTitle");
+            highlightBuilder.preTags("<b style='color:red'>");
+            highlightBuilder.postTags("</b>");
+            searchSourceBuilder.highlighter(highlightBuilder);
+        }
+        //测试
+        String s = searchSourceBuilder.toString();
+        System.out.println("构建的DSL语句：" + s);
+
+        //3.聚合分析
+        //3.1 品牌的聚合信息
+        TermsAggregationBuilder brand_agg = AggregationBuilders.terms("brand_agg");
+        brand_agg.field("brandId").size(50);
+        //3.1.1 品牌的聚合信息的子聚合
+        brand_agg.subAggregation(AggregationBuilders.terms("brand_name_agg").field("brandName").size(1));
+        brand_agg.subAggregation(AggregationBuilders.terms("brand_img_agg").field("brandImg").size(1));
+        //3.2 品牌的聚合信息
+        searchSourceBuilder.aggregation(brand_agg);
+
+        //3.3 分类的聚合
+        TermsAggregationBuilder catalog_agg = AggregationBuilders.terms("catalog_agg").field("catalogId").size(20);
+        catalog_agg.subAggregation(AggregationBuilders.terms("catalog_name_agg").field(
+                "catalogName").size(1));
+        searchSourceBuilder.aggregation(catalog_agg);
+
+        //3.4 属性聚合
+        NestedAggregationBuilder attr_agg = AggregationBuilders.nested("attr_agg", "attrs");
+        //3.4.1 嵌入聚合进行聚合
+
+        TermsAggregationBuilder attr_id_agg = AggregationBuilders.terms("attr_id_agg").field("attrs.attrId").size(10);
+        //3.4.2 嵌入聚合进行聚合 进行子聚合
+        attr_id_agg.subAggregation(AggregationBuilders.terms("attr_name_agg").field("attrs.attrName").size(10));
+        attr_id_agg.subAggregation(AggregationBuilders.terms("attr_value_agg").field("attrs.attrValue").size(10));
+        attr_agg.subAggregation(attr_id_agg);
+        searchSourceBuilder.aggregation(attr_agg);
+
+
+        SearchRequest searchRequest = new SearchRequest(new String[]{EsConstant.PRODUCT_INDEX}, searchSourceBuilder);
+        return searchRequest;
+    }
+
+    /**
+     * 构建结果数据
+     *
+     * @param response
+     * @return com.uin.esclient.vo.SearchResult
+     * @author wanglufei
+     * @date 2022/6/5 8:52 PM
+     */
+    private SearchResult buildSearchRequest(SearchResponse response) {
+        SearchResult result = new SearchResult();
+        //1.封装当前所有的的商品信息
+        //result.setProducts();
+        //2.封装分页
+        //result.setPageNum();
+        //result.setTotal();
+        //result.setTotalPages();
+
+        //result.setBrands();
+        //3.封装属性
+        //result.setAttrs();
+        //4.分类信息
+        //result.setCatalogs();
+
+
         return null;
     }
 }

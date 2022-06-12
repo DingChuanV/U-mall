@@ -26,7 +26,7 @@ public class SearchParams {
      * 3.skuPrice_asc/desc
      * 4.hotScore_asc/desc
      */
-    private Long sort;
+    private String sort;
     /**
      * 过滤条件
      * 1.hasStock 0/1
@@ -49,6 +49,6 @@ public class SearchParams {
      */
     private List<String> attrs;//按照属性来封装
 
-    private Integer pageNumber;//第几页的数据
+    private Integer pageNumber = 1;//第几页的数据
 
 }
