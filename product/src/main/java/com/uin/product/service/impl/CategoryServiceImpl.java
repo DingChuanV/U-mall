@@ -195,9 +195,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
             //如果缓存中不是空的，我们将这个json数据格式转换成对象，就直接返回
             if (!StringUtils.isEmpty(catalogJson)) {
-                Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson,
-                        new TypeReference<Map<String, List<Catalog2Vo>>>() {
-                        });
+                Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catalog2Vo>>>() {});
                 return result;
             }
             //使用本地锁的测试

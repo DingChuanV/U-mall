@@ -6,6 +6,7 @@ import com.uin.esclient.vo.SearchResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.annotation.Resource;
@@ -19,9 +20,10 @@ public class SearchController {
     MallSearchService mallSearchService;
 
     @GetMapping("/list.html")
-    public String list(SearchParams params) {
+    public String list(SearchParams params, Model model) {
         try {
             SearchResult result = mallSearchService.search(params);
+            model.addAttribute("result", result);
         } catch (IOException e) {
             log.info(e.getMessage());
         }

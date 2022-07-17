@@ -23,6 +23,8 @@ public class SearchResult {
 
     private Integer totalPages;//总页码
 
+    private List<Integer> pageNavs;//导航页
+
     //品牌信息 当前查询结果涉及的品牌信息
     private List<BrandVo> brands;
 

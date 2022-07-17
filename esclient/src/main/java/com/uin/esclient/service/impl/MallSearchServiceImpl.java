@@ -122,9 +122,10 @@ public class MallSearchServiceImpl implements MallSearchService {
             }
         }
 
-
         //1.3.4 按照仅有库存
-        queryBuilder.filter(QueryBuilders.termQuery("hasStock", params.getHasStock() == 1));
+        if (params.getHasStock() != null) {
+            queryBuilder.filter(QueryBuilders.termQuery("hasStock", params.getHasStock() == 1));
+        }
 
         //1.3.5 按照价格区间
         /**
@@ -194,7 +195,8 @@ public class MallSearchServiceImpl implements MallSearchService {
         brand_agg.field("brandId").size(50);
         //3.1.1 品牌的聚合信息的子聚合
         brand_agg.subAggregation(AggregationBuilders.terms("brand_name_agg").field("brandName").size(1));
-        brand_agg.subAggregation(AggregationBuilders.terms("brand_img_agg").field("brandImg").size(1));
+        brand_agg.subAggregation(AggregationBuilders.terms("brand_img_agg").field("brandImg" +
+                ".keyword").size(1));
         //3.2 品牌的聚合信息
         searchSourceBuilder.aggregation(brand_agg);
 
@@ -210,7 +212,8 @@ public class MallSearchServiceImpl implements MallSearchService {
 
         TermsAggregationBuilder attr_id_agg = AggregationBuilders.terms("attr_id_agg").field("attrs.attrId").size(10);
         //3.4.2 嵌入聚合进行聚合 进行子聚合
-        attr_id_agg.subAggregation(AggregationBuilders.terms("attr_name_agg").field("attrs.attrName").size(10));
+        attr_id_agg.subAggregation(AggregationBuilders.terms("attr_name_agg").field("attrs" +
+                ".attrName.keyword").size(10));
         attr_id_agg.subAggregation(AggregationBuilders.terms("attr_value_agg").field("attrs.attrValue").size(10));
         attr_agg.subAggregation(attr_id_agg);
         searchSourceBuilder.aggregation(attr_agg);
@@ -252,6 +255,12 @@ public class MallSearchServiceImpl implements MallSearchService {
                 (int) (value / EsConstant.SIZE + 1);
         result.setTotalPages(pages);
 
+        List<Integer> pageNavs = new ArrayList<>();
+        for (int i = 1; i <= pages; i++) {
+            pageNavs.add(i);
+        }
+        result.setPageNavs(pageNavs);
+
         //4.分类信息
         //result.setCatalogs();
         List<SearchResult.CatalogVo> catalogVoList = new ArrayList<>();
@@ -265,7 +274,7 @@ public class MallSearchServiceImpl implements MallSearchService {
             catalogVo.setCatalogId(Long.valueOf(keyAsString));
 
             //分类名
-            ParsedLongTerms nameAgg = bucket.getAggregations().get("catalog_name_agg");
+            ParsedStringTerms nameAgg = bucket.getAggregations().get("catalog_name_agg");
             String asString = nameAgg.getBuckets().get(0).getKeyAsString();
             catalogVo.setCatalogName(asString);
 
@@ -292,7 +301,6 @@ public class MallSearchServiceImpl implements MallSearchService {
             brandVos.add(brandVo);
         }
 
-
         //3.封装属性
         //result.setAttrs();
         List<SearchResult.AttrVo> attrVos = new ArrayList<>();
@@ -314,7 +322,6 @@ public class MallSearchServiceImpl implements MallSearchService {
             attrVo.setAttrValue(attr_value_agg);
             attrVos.add(attrVo);
         }
-
         return result;
     }
 }

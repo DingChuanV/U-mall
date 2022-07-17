@@ -8,6 +8,6 @@ public class EsConstant {
     /**
      * 一页多少条
      */
-    public static final Integer SIZE = 2;
+    public static final Integer SIZE = 16;
 
 }
