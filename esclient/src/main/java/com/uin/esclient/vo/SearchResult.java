@@ -3,6 +3,7 @@ package com.uin.esclient.vo;
 import com.uin.to.es.SpuEsTO;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +35,7 @@ public class SearchResult {
     //分类的信息
     private List<CatalogVo> catalogs;
     /* 面包屑导航数据 */
-    private List<NavVo> navs;
+    private List<NavVo> navs = new ArrayList<>();
 
     @Data
     public static class BrandVo {
@@ -55,6 +56,7 @@ public class SearchResult {
         private String attrName;
         private List<String> attrValue;
     }
+
     @Data
     public static class NavVo {
         private String navName;

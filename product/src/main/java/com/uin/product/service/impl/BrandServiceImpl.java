@@ -6,8 +6,10 @@ import com.uin.product.service.CategoryBrandRelationService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -41,6 +43,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> impleme
 
         return new PageUtils(page);
     }
+
     @Transactional
     @Override
     public void updateRelation(BrandEntity brand) {
@@ -52,6 +55,14 @@ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> impleme
             categoryBrandRelationService.updateRelationBrand(brand.getBrandId(), brand.getName());
             //TODO 更新其他关联
         }
+    }
+
+    @Cacheable(value = "brands", key = "'brandId:'+#root.args[0]")
+    @Override
+    public List<BrandEntity> getBrandBybranId(List<Long> branId) {
+        List<BrandEntity> entities = baseMapper.selectList(new QueryWrapper<BrandEntity>().in(
+                "brand_id", branId));
+        return entities;
     }
 
 }

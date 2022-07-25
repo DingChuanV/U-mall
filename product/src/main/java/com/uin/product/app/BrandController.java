@@ -1,8 +1,10 @@
 package com.uin.product.app;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.uin.product.vo.BrandVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import com.uin.valid.AddGroup;
@@ -10,11 +12,7 @@ import com.uin.valid.UpdateGroup;
 import com.uin.valid.UpdateStatusGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.uin.product.entity.BrandEntity;
 import com.uin.product.service.BrandService;
@@ -56,8 +54,13 @@ public class BrandController {
      */
     public R info(@PathVariable("brandId") Long brandId) {
         BrandEntity brand = brandService.getById(brandId);
-
         return R.ok().put("brand", brand);
+    }
+
+    @GetMapping("/infos}")
+    public R info(@RequestParam("brandIds") List<Long> branId) {
+        List<BrandEntity> branIds = brandService.getBrandBybranId(branId);
+        return R.ok().put("brand", branIds);
     }
 
     /**
@@ -92,7 +95,7 @@ public class BrandController {
     /**
      *@RequiresPermissions("product:brand:update")
      */
-    public R update(@Validated(UpdateGroup.class)  @RequestBody BrandEntity brand) {
+    public R update(@Validated(UpdateGroup.class) @RequestBody BrandEntity brand) {
         //brandService.updateById(brand);
         //因为在我们的业务中品牌表和分类表是通过，中间表来存储（使用冗余字段来减少关联关系），但是如果我们的品牌表和分类表中的字段发生修改，就会出现中间表的数据不一致
         //所以我们在对品牌表和分类表修改的时候，要多加一个业务步骤，
@@ -109,7 +112,7 @@ public class BrandController {
     /**
      *@RequiresPermissions("product:brand:update")
      */
-    public R updateStatus(@Validated(UpdateStatusGroup.class)  @RequestBody BrandEntity brand) {
+    public R updateStatus(@Validated(UpdateStatusGroup.class) @RequestBody BrandEntity brand) {
         brandService.updateById(brand);
 
         return R.ok();

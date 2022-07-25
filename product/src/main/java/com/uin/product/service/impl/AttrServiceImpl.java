@@ -137,8 +137,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
      * @Cacheable("attr") 表示可以缓存调用方法（或类中的所有方法）的结果的注释。
      * 每次调用建议的方法时，都会应用缓存行为
      */
-    @Cacheable("attr")
-    @Transactional
+    @Cacheable(value = "attr",key = "'attrInfo:'+#root.args[0]")
     @Override
     public AttrResponseVo getAttrInfo(Long attrId) {
         AttrEntity attrEntity = this.baseMapper.selectById(attrId);

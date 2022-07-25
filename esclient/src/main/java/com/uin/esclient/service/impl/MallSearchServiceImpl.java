@@ -7,6 +7,7 @@ import com.uin.esclient.constant.EsConstant;
 import com.uin.esclient.feign.ProductFeignService;
 import com.uin.esclient.service.MallSearchService;
 import com.uin.esclient.vo.AttrResponseVo;
+import com.uin.esclient.vo.BrandVo;
 import com.uin.esclient.vo.SearchParams;
 import com.uin.esclient.vo.SearchResult;
 import com.uin.to.es.SpuEsTO;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -310,7 +312,6 @@ public class MallSearchServiceImpl implements MallSearchService {
         }
 
         //3.封装属性
-        //result.setAttrs();
         List<SearchResult.AttrVo> attrVos = new ArrayList<>();
         ParsedNested attr_agg = response.getAggregations().get("attr_agg");
         ParsedLongTerms attr_id_agg = attr_agg.getAggregations().get("attr_id_agg");
@@ -350,17 +351,46 @@ public class MallSearchServiceImpl implements MallSearchService {
                     log.error("远程调用商品服务查询属性失败", e);
                 }
                 //6.3 设置面包屑跳转链接
-                String queryString = params.get_queryString();
-                String replace = queryString
-                        .replace("&attrs=" + attr, "")
-                        .replace("attrs=" + attr + "&", "")
-                        .replace("attrs=" + attr, "");
-                navVo.setLink("http://search.gulimall.com/list.html" + (replace.isEmpty() ? "" : "?" + replace));
+                String queryString = replaceQueryString(params, attr, "attrs");
+                navVo.setLink("http://search.gulimall.com/list.html" + queryString);
                 return navVo;
             }).collect(Collectors.toList());
             result.setNavs(navVos);
         }
 
+        //品牌、分类
+        if (params.getBrandId() != null && params.getBrandId().size() > 0) {
+            List<SearchResult.NavVo> navs = result.getNavs();
+            SearchResult.NavVo navVo = new SearchResult.NavVo();
+            navVo.setNavName("品牌");
+            //TODO 调用远程服务去查询
+            R r = productFeignService.productInfo(params.getBrandId());
+            if (r.getCode() == 0) {
+                List<BrandVo> brand = r.getData("brand", new TypeReference<List<BrandVo>>() {
+                });
+                StringBuffer stringBuffer = new StringBuffer();
+                String replace = "";
+                for (BrandVo item : brand) {
+                    stringBuffer.append(item.getBrandName() + ";");
+                    replace = replaceQueryString(params, item.getBrandId() + "", "brandId");
+                }
+                navVo.setNavValue(stringBuffer.toString());
+                navVo.setLink("http://search.gulimall.com/list.html" + replace);
+            }
+            navs.add(navVo);
+        }
+
         return result;
+    }
+
+    private String replaceQueryString(SearchParams params, String value, String key) {
+        String encode = null;
+        try {
+            encode = URLEncoder.encode(value, "UTF-8");
+            encode = encode.replace("+", "%20");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return params.get_queryString().replace("&" + key + "=" + encode, "");
     }
 }

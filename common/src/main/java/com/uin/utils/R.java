@@ -8,6 +8,7 @@
 
 package com.uin.utils;
 
+import com.alibaba.fastjson.TypeReference;
 import org.apache.http.HttpStatus;
 
 import java.util.HashMap;
@@ -65,5 +66,14 @@ public class R extends HashMap<String, Object> {
     public Integer getCode() {
 
         return (Integer) this.get("code");
+    }
+
+    public R setData(Object data) {
+        put("data", data);
+        return this;
+    }
+
+    public <T> T getData(String key, TypeReference<T> tTypeReference) {
+        return this.getData("data", tTypeReference);
     }
 }
