@@ -1090,12 +1090,37 @@
                 <div class="filter">
                     <!--综合排序-->
                     <div class="filter_top">
-                        <div class="filter_top_left">
-                            <a href="/static/search/#">综合排序</a>
-                            <a href="/static/search/#">销量</a>
-                            <a href="/static/search/#">价格</a>
-                            <a href="/static/search/#">评论分</a>
-                            <a href="/static/search/#">上架时间</a>
+                        <div class="filter_top_left"
+                             th:with="p = ${param.sort}, priceRange = ${param.skuPrice}">
+                            <a sort="hotScore"
+                               th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc')) ? 'sort_a desc' : 'sort_a'}"
+                               th:attr="style=${(#strings.isEmpty(p) || #strings.startsWith(p,'hotScore')) ?
+                                   'color: #fff; border-color: #e4393c; background: #e4393c;':'color: #333; border-color: #ccc; background: #fff;' }">
+                                综合排序[[${(!#strings.isEmpty(p) && #strings.startsWith(p,'hotScore')
+                                &&
+                                #strings.endsWith(p,'desc')) ?'↓':'↑' }]]</a>
+                            <a sort="saleCount"
+                               th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc')) ? 'sort_a desc' : 'sort_a'}"
+                               th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount')) ?
+                                   'color: #fff; border-color: #e4393c; background: #e4393c;':'color: #333; border-color: #ccc; background: #fff;' }">
+                                销量[[${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount') &&
+                                #strings.endsWith(p,'desc'))?'↓':'↑' }]]</a>
+                            <a sort="skuPrice"
+                               th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice') && #strings.endsWith(p,'desc')) ? 'sort_a desc' : 'sort_a'}"
+                               th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice')) ?
+                                   'color: #fff; border-color: #e4393c; background: #e4393c;':'color: #333; border-color: #ccc; background: #fff;' }">
+                                价格[[${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice') &&
+                                #strings.endsWith(p,'desc'))?'↓':'↑' }]]</a>
+                            <a sort="hotScore" class="sort_a">评论分</a>
+                            <a sort="hotScore" class="sort_a">上架时间</a>
+                            <input id="skuPriceFrom" type="number"
+                                   th:value="${#strings.isEmpty(priceRange)?'':#strings.substringBefore(priceRange,'_')}"
+                                   style="width: 100px; margin-left: 30px">
+                            -
+                            <input id="skuPriceTo" type="number"
+                                   th:value="${#strings.isEmpty(priceRange)?'':#strings.substringAfter(priceRange,'_')}"
+                                   style="width: 100px">
+                            <button id="skuPriceSearchBtn">确定</button>
                         </div>
                         <div class="filter_top_right">
                             <span class="fp-text">
@@ -1209,8 +1234,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="/static/search/#">
-                                        <i></i>
+                                    <a th:with="check = ${param.hasStock}">
+                                        <input id="showHasStock" type="checkbox" th:checked="${#strings.equals(check,'1')?true:false}">
                                         仅显示有货
                                     </a>
                                 </li>
@@ -2242,25 +2267,95 @@
         }
     };
 
+    <!--替换网址相关函数-->
+    <!--搜索框-->
     function searchByKeyword() {
-        searchProducts("keyword", $("#keyWordInput").val());
+        location.href = replaceParamVal(location.href,"keyword", $("#keyword_input").val(),false);
     };
     $(".page_a").click(function () {
         let pn = $(this).attr("pn");
         location.href = location.href + "&pageNum=" + pn;
         let href = location.href;
         if (href.indexOf("pageNum=") > -1) {
-            location.href = replaceUrlAll(href, "pageNum", pn);
+            location.href = replaceAndAddUrlAll(href, "pageNum", pn);
         }
         return false;
     })
 
-    function replaceUrlAll(url, paramName, replaceVal) {
+    function replaceAndAddUrlAll(url, paramName, replaceVal) {
         let oldUrl = url.toString();
-        let re = eval('/(' + paramName + '=)([^&]*)/gi');
-        let s = oldUrl.replace(re, paramName + '=' + replaceVal);
-        return s;
+        if (oldUrl.indexOf("paramName") > -1) {
+            //2.oldUrl有，就替换
+            let re = eval('/(' + paramName + '=)([^&]*)/gi');
+            let s = oldUrl.replace(re, paramName + '=' + replaceVal);
+            return s;
+        } else {
+            //1.oldUrl没有就增加
+            let nurl = oldUrl;
+            return nurl.indexOf("?") > -1 == true ? nurl + "?" + paramName + '=' + replaceVal : nurl + "&" + paramName + '=' + replaceVal;
+        }
     }
+
+    function serachBySort(sortType) {
+        if (sortType == "default") {
+
+        }
+        if (sortType == "sale") {
+
+        }
+        if (sortType == "price") {
+
+        }
+    }
+
+    <!--仅显示有货-->
+    $("#showHasStock").click(function () {
+        let checked = $(this).prop("checked");
+        console.log(checked);
+        location.href=replaceParamVal(location.href,"hasStock",checked?1:0,false)
+    })
+
+    <!--价格区间-->
+    $("#skuPriceSearchBtn").click(function () {
+        var skuPriceFrom = $("#skuPriceFrom").val();
+        var skuPriceTo = $("#skuPriceTo").val();
+        location.href = replaceParamVal(location.href, "skuPrice", skuPriceFrom + "_" + skuPriceTo, false);
+    })
+    <!--排序-->
+    $(".sort_a").click(function () {
+        //改变样式
+        //changeStyle(this)
+        $(this).toggleClass("desc");
+        let sort = $(this).attr("sort");
+        sort = $(this).hasClass("desc") ? sort + "_desc" : sort + "_asc";
+        //跳转到指定的位置 hotScore_asc/desc
+        location.href = replaceAndAddUrlAll(location.href, "sort",)
+        return false;
+    })
+
+    function changeStyle(ele) {
+        //禁用掉默认的行为（跳转页面）
+        //点击效果
+        //2.清除掉其他元素的css属性
+        // 改变当前元素和兄弟元素的样式
+        $(".sort_a").css({"color": "#333", "border-color": "#CCC", "background": "#FFF"})
+        $(".sort_a").each(function () {
+            let replace = $(this).text().replace("↓", "").replace("↑", "");
+            $(this).text(replace);
+        })
+        //1.当前被点击的元素变为红色
+        $(ele).css({"color": "#FFF", "border-color": "#e4393c", "background": "#e4393c"})
+        //TODO 改变元素的升降序 规则：默认降序DESC 加了生序ASC
+        $(ele).toggleClass("desc");
+        if ($(ele).hasClass("desc")) {
+            let replace = $(ele).text().replace("↓", "").replace("↑", "");
+            $(ele).text(replace + "↓");
+        } else {
+            let replace1 = $(ele).text().replace("↓", "").replace("↑", "");
+            $(ele).text(replace1 + "↑");
+        }
+    }
+
 </script>
 </body>
 </html>
