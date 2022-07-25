@@ -51,4 +51,11 @@ public class SearchParams {
 
     private Integer pageNumber = 1;//第几页的数据
 
+
+    /**
+     * 原生的所有查询条件
+     */
+    private String _queryString;
+
+
 }

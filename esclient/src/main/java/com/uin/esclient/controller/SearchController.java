@@ -9,19 +9,20 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@Controller
 @Slf4j
+@Controller
 public class SearchController {
 
     @Autowired
     MallSearchService mallSearchService;
 
     @GetMapping("/list.html")
-    public String list(SearchParams params, Model model) {
+    public String list(SearchParams params, Model model, HttpServletRequest request) {
         try {
+            params.set_queryString(request.getQueryString());
             SearchResult result = mallSearchService.search(params);
             model.addAttribute("result", result);
         } catch (IOException e) {

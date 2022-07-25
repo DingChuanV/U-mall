@@ -1,12 +1,17 @@
 package com.uin.esclient.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.uin.esclient.config.EsClientConfig;
 import com.uin.esclient.constant.EsConstant;
+import com.uin.esclient.feign.ProductFeignService;
 import com.uin.esclient.service.MallSearchService;
+import com.uin.esclient.vo.AttrResponseVo;
 import com.uin.esclient.vo.SearchParams;
 import com.uin.esclient.vo.SearchResult;
 import com.uin.to.es.SpuEsTO;
+import com.uin.utils.R;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
@@ -15,7 +20,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
@@ -26,15 +30,19 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class MallSearchServiceImpl implements MallSearchService {
     @Autowired
-    RestHighLevelClient client;
+    private RestHighLevelClient client;
+    @Resource
+    ProductFeignService productFeignService;
 
     /**
      * 根据检索参数 去es中检索 返回检索的结果
@@ -322,6 +330,37 @@ public class MallSearchServiceImpl implements MallSearchService {
             attrVo.setAttrValue(attr_value_agg);
             attrVos.add(attrVo);
         }
+        // 6. 构建面包屑导航
+        List<String> attrs = params.getAttrs();
+        if (attrs != null && attrs.size() > 0) {
+            List<SearchResult.NavVo> navVos = attrs.stream().map(attr -> {
+                String[] split = attr.split("_");
+                SearchResult.NavVo navVo = new SearchResult.NavVo();
+                //6.1 设置属性值
+                navVo.setNavValue(split[1]);
+                //6.2 查询并设置属性名
+                try {
+                    R r = productFeignService.info(Long.parseLong(split[0]));
+                    if (r.getCode() == 0) {
+                        AttrResponseVo attrResponseVo = JSON.parseObject(JSON.toJSONString(r.get("attr")), new TypeReference<AttrResponseVo>() {
+                        });
+                        navVo.setNavName(attrResponseVo.getAttrName());
+                    }
+                } catch (Exception e) {
+                    log.error("远程调用商品服务查询属性失败", e);
+                }
+                //6.3 设置面包屑跳转链接
+                String queryString = params.get_queryString();
+                String replace = queryString
+                        .replace("&attrs=" + attr, "")
+                        .replace("attrs=" + attr + "&", "")
+                        .replace("attrs=" + attr, "");
+                navVo.setLink("http://search.gulimall.com/list.html" + (replace.isEmpty() ? "" : "?" + replace));
+                return navVo;
+            }).collect(Collectors.toList());
+            result.setNavs(navVos);
+        }
+
         return result;
     }
 }

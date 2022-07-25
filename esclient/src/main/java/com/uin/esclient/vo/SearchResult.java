@@ -33,6 +33,8 @@ public class SearchResult {
 
     //分类的信息
     private List<CatalogVo> catalogs;
+    /* 面包屑导航数据 */
+    private List<NavVo> navs;
 
     @Data
     public static class BrandVo {
@@ -53,4 +55,11 @@ public class SearchResult {
         private String attrName;
         private List<String> attrValue;
     }
+    @Data
+    public static class NavVo {
+        private String navName;
+        private String navValue;
+        private String link;
+    }
+
 }
