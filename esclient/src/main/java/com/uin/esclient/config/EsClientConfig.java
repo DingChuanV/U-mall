@@ -1,11 +1,9 @@
 package com.uin.esclient.config;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.client.HttpAsyncResponseConsumerFactory;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,7 +25,7 @@ public class EsClientConfig {
 
         RestHighLevelClient client = new RestHighLevelClient(
                 RestClient.builder(
-                        new HttpHost("192.168.2.115", 9200, "http")
+                        new HttpHost("10.100.114.200", 9200, "http")
                 ));
         return client;
     }

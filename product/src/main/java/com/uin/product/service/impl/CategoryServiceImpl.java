@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
-//    @Autowired
-//    CategoryDao categoryDao;
-
     @Autowired
     CategoryBrandRelationService categoryBrandRelationService;
     @Autowired
@@ -86,7 +83,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public void removeMenuByIds(List<Long> asList) {
-        //TODO 需要检查是否其他地方被引用
+        // 需要检查是否其他地方被引用
         //逻辑删除
         baseMapper.deleteBatchIds(asList);
     }
@@ -105,7 +102,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             @CacheEvict(value = {"catalog"}, key = "'cataloglevel_one'"),
             @CacheEvict(value = {"catalog"}, key = "'getCatlogJson'")
     })//使用组合注解 删除多个缓存
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateRelationCatgory(CategoryEntity category) {
         //更新自己
@@ -119,7 +116,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * @Cacheable() 需要指定我们的缓存数据放到哪里（缓存分区(按照业务的类型区分)）
      * 就好像Spring-cache是我们的陕西省，@Cacheable({"xian_cache"})，我们的缓存数据要放到西安。
      */
-    @Cacheable(value = {"catalog"}, key = "#root.method.name",unless="#result == null")
+    @Cacheable(value = {"catalog"}, key = "#root.method.name", unless = "#result == null")
     //代表当前方法返回结果需要被缓存，如果缓存中有，就不缓存，如果没有，就缓存
 
     @Override
@@ -141,7 +138,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      */
 
     @Override
-    @Cacheable(value = {"category"}, key = "#root.method.name",unless="#result == null")
+    @Cacheable(value = {"category"}, key = "#root.method.name", unless = "#result == null")
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
         //1.加入redis缓存 缓存中存的数据都是json数据格式
         //json数据跨平台 兼容性好
@@ -195,7 +192,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
             //如果缓存中不是空的，我们将这个json数据格式转换成对象，就直接返回
             if (!StringUtils.isEmpty(catalogJson)) {
-                Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catalog2Vo>>>() {});
+                Map<String, List<Catalog2Vo>> result = JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catalog2Vo>>>() {
+                });
                 return result;
             }
             //使用本地锁的测试
