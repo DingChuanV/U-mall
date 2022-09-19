@@ -2,6 +2,8 @@
 
 ## 项目简介
 
+Mall商城B2C电商平台，销售自营商品给客户。
+
 Mall商城项目致力于打造一个完整的大型分布式架构的电商平台，采用先阶段流行的前后端分离模式编写。
 
 Mall商城是一套电商项目，包括前台的商城系统以及后台管理系统，基于SpringCloud、SpringCloud Alibaba、Mybatis-plus实现。
