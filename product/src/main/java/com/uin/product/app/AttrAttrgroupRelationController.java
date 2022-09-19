@@ -1,21 +1,14 @@
 package com.uin.product.app;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import com.uin.utils.PageUtils;
-import com.uin.utils.R;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.uin.product.entity.AttrAttrgroupRelationEntity;
 import com.uin.product.service.AttrAttrgroupRelationService;
+import com.uin.utils.PageUtils;
+import com.uin.utils.R;
+import org.springframework.web.bind.annotation.*;
 
-
+import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Map;
 
 
 /**
@@ -28,7 +21,8 @@ import com.uin.product.service.AttrAttrgroupRelationService;
 @RestController
 @RequestMapping("product/attrattrgrouprelation")
 public class AttrAttrgroupRelationController {
-    @Autowired
+    //@Autowired
+    @Resource
     private AttrAttrgroupRelationService attrAttrgroupRelationService;
 
     /**

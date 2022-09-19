@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,7 +40,7 @@ public class ProductAttrValueServiceImpl extends ServiceImpl<ProductAttrValueDao
         return entity;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateSpuAttr(Long spuId, List<ProductAttrValueEntity> productAttrValueEntities) {
         //1.删除之前的属性数据

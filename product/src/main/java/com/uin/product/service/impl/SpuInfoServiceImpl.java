@@ -4,7 +4,6 @@ package com.uin.product.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.uin.constant.ProductConstant;
 import com.uin.product.dao.SpuInfoDao;
 import com.uin.product.entity.*;
@@ -22,7 +21,6 @@ import com.uin.utils.Query;
 import com.uin.utils.R;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,7 +28,6 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service("spuInfoService")
 public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> implements SpuInfoService {
@@ -71,7 +68,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     }
 
     //TODO 失败处理高级部分
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void saveSpuSaveVo(SpuSaveVo spuSaveVo) {
         //1.保存spu的基本信息 pms_spu_info
@@ -169,7 +166,6 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                         log.error("远程保存sku积分信息失败");
                     }
                 }
-
             });
         }
     }

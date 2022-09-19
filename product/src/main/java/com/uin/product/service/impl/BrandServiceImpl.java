@@ -1,26 +1,22 @@
 package com.uin.product.service.impl;
 
-import com.uin.product.dao.CategoryBrandRelationDao;
-import com.uin.product.entity.CategoryBrandRelationEntity;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.uin.product.dao.BrandDao;
+import com.uin.product.entity.BrandEntity;
+import com.uin.product.service.BrandService;
 import com.uin.product.service.CategoryBrandRelationService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
-import com.uin.product.dao.BrandDao;
-import com.uin.product.entity.BrandEntity;
-import com.uin.product.service.BrandService;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 
 @Service("brandService")
@@ -33,8 +29,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> impleme
         String key = (String) params.get("key");
         QueryWrapper<BrandEntity> queryWrapper = new QueryWrapper<BrandEntity>();
         if (!StringUtils.isEmpty(key)) {
-            queryWrapper.eq("brand_id", key)
-                    .or().like("name", key);
+            queryWrapper.eq("brand_id", key).or().like("name", key);
         }
 
         IPage<BrandEntity> page = this.page(
@@ -44,7 +39,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> impleme
         return new PageUtils(page);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateRelation(BrandEntity brand) {
         //需要保证中间表中的冗余字段的数据和主表的数据一致
