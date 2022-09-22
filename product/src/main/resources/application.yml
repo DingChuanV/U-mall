@@ -3,7 +3,7 @@ server:
 
 spring:
   redis:
-    host: 192.168.2.115
+    host: 10.100.114.200
     port: 6379
   thymeleaf:
     cache: false

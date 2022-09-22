@@ -118,7 +118,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      */
     @Cacheable(value = {"catalog"}, key = "#root.method.name", unless = "#result == null")
     //代表当前方法返回结果需要被缓存，如果缓存中有，就不缓存，如果没有，就缓存
-
     @Override
     public List<CategoryEntity> getLevel_one() {
         long l = System.currentTimeMillis();
@@ -136,7 +135,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * 解决缓存穿透--将null结果缓存，
      * 并设置过期随机时间，来解决缓存雪崩，加锁，防止缓存击穿的问题
      */
-
     @Override
     @Cacheable(value = {"category"}, key = "#root.method.name", unless = "#result == null")
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
