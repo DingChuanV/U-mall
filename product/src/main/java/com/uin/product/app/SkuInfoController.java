@@ -1,19 +1,14 @@
 package com.uin.product.app;
 
-import java.util.Arrays;
-import java.util.Map;
-
+import com.uin.product.entity.SkuInfoEntity;
+import com.uin.product.service.SkuInfoService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.uin.product.entity.SkuInfoEntity;
-import com.uin.product.service.SkuInfoService;
+import java.util.Arrays;
+import java.util.Map;
 
 
 
@@ -50,7 +45,6 @@ public class SkuInfoController {
     @RequestMapping("/info/{skuId}")
     public R info(@PathVariable("skuId") Long skuId){
 		SkuInfoEntity skuInfo = skuInfoService.getById(skuId);
-
         return R.ok().put("skuInfo", skuInfo);
     }
 
@@ -63,7 +57,6 @@ public class SkuInfoController {
      */
     public R save(@RequestBody SkuInfoEntity skuInfo){
 		skuInfoService.save(skuInfo);
-
         return R.ok();
     }
 
@@ -76,7 +69,6 @@ public class SkuInfoController {
      */
     public R update(@RequestBody SkuInfoEntity skuInfo){
 		skuInfoService.updateById(skuInfo);
-
         return R.ok();
     }
 
@@ -89,7 +81,6 @@ public class SkuInfoController {
      */
     public R delete(@RequestBody Long[] skuIds){
 		skuInfoService.removeByIds(Arrays.asList(skuIds));
-
         return R.ok();
     }
 

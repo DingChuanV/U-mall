@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.uin.product.entity.SkuImagesEntity;
 import com.uin.utils.PageUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,5 +17,15 @@ import java.util.Map;
 public interface SkuImagesService extends IService<SkuImagesEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * sku的图片信息
+     *
+     * @param skuId
+     * @return java.util.List<com.uin.product.entity.SkuImagesEntity>
+     * @author wanglufei
+     * @date 2022/9/27 3:41 PM
+     */
+    List<SkuImagesEntity> getImageBySkuId(Long skuId);
 }
 

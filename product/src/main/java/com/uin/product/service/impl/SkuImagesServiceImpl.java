@@ -11,6 +11,7 @@ import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service("skuImagesService")
@@ -24,6 +25,21 @@ public class SkuImagesServiceImpl extends ServiceImpl<SkuImagesDao, SkuImagesEnt
         );
 
         return new PageUtils(page);
+    }
+
+    /**
+     * sku的图片信息
+     *
+     * @param skuId
+     * @return java.util.List<com.uin.product.entity.SkuImagesEntity>
+     * @author wanglufei
+     * @date 2022/9/27 3:42 PM
+     */
+    @Override
+    public List<SkuImagesEntity> getImageBySkuId(Long skuId) {
+        SkuImagesDao imagesDao = this.baseMapper;
+        List<SkuImagesEntity> entityList = imagesDao.selectList(new QueryWrapper<SkuImagesEntity>().eq("spu_id", skuId));
+        return entityList;
     }
 
 }

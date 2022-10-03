@@ -1,10 +1,7 @@
 package com.uin.product.app;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import com.uin.product.vo.BrandVo;
+import com.uin.product.entity.BrandEntity;
+import com.uin.product.service.BrandService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import com.uin.valid.AddGroup;
@@ -14,8 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.uin.product.entity.BrandEntity;
-import com.uin.product.service.BrandService;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -57,7 +55,7 @@ public class BrandController {
         return R.ok().put("brand", brand);
     }
 
-    @GetMapping("/infos}")
+    @GetMapping("/infos")
     public R info(@RequestParam("brandIds") List<Long> branId) {
         List<BrandEntity> branIds = brandService.getBrandBybranId(branId);
         return R.ok().put("brand", branIds);

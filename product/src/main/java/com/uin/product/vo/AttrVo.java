@@ -1,13 +1,14 @@
 package com.uin.product.vo;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * vo对象是用来封装请求和响应数据
  */
 @Data
-public class AttrVo {
+public class AttrVo implements Serializable {
     /**
      * 属性id
      */

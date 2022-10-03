@@ -2,8 +2,10 @@ package com.uin.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.uin.product.entity.SkuSaleAttrValueEntity;
+import com.uin.product.vo.itemVo.SkuItemSaleAttrVo;
 import com.uin.utils.PageUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,5 +18,15 @@ import java.util.Map;
 public interface SkuSaleAttrValueService extends IService<SkuSaleAttrValueEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * 获取spu的销售属性组合
+     *
+     * @param spuId
+     * @return java.util.List<com.uin.product.vo.itemVo.SkuItemSaleAttrVo>
+     * @author wanglufei
+     * @date 2022/10/3 7:40 PM
+     */
+    List<SkuItemSaleAttrVo> getSaleAttrBySpuId(Long spuId);
 }
 

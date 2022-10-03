@@ -1,9 +1,5 @@
 package com.uin.coupon.controller;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-
 import com.uin.coupon.entity.CouponEntity;
 import com.uin.coupon.service.CouponService;
 import com.uin.utils.PageUtils;
@@ -63,7 +59,6 @@ public class CouponController {
      */
     public R list(@RequestParam Map<String, Object> params) {
         PageUtils page = couponService.queryPage(params);
-
         return R.ok().put("page", page);
     }
 

@@ -1,12 +1,16 @@
 package com.uin.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.uin.product.dao.BrandDao;
+import com.uin.product.dao.CategoryBrandRelationDao;
 import com.uin.product.dao.CategoryDao;
 import com.uin.product.entity.BrandEntity;
+import com.uin.product.entity.CategoryBrandRelationEntity;
 import com.uin.product.entity.CategoryEntity;
-import com.uin.product.service.BrandService;
-import com.uin.product.service.CategoryService;
+import com.uin.product.service.CategoryBrandRelationService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,29 +18,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
-
-import com.uin.product.dao.CategoryBrandRelationDao;
-import com.uin.product.entity.CategoryBrandRelationEntity;
-import com.uin.product.service.CategoryBrandRelationService;
 
 
 @Service("categoryBrandRelationService")
 public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandRelationDao, CategoryBrandRelationEntity> implements CategoryBrandRelationService {
-
     @Autowired
-    BrandDao brandDao;
+    private BrandDao brandDao;
     @Autowired
-    CategoryDao categoryDao;
-    @Autowired
-    CategoryBrandRelationDao categoryBrandRelationDao;
-    @Autowired
-    BrandService brandService;
+    private CategoryDao categoryDao;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -84,17 +73,10 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
     }
 
     @Override
-    public List<BrandEntity> getBrandByCatid(Long catId) {
-        List<CategoryBrandRelationEntity> entities = categoryBrandRelationDao.selectList(new QueryWrapper<CategoryBrandRelationEntity>().eq(
-                "catelog_id", catId));
-        List<BrandEntity> collect = entities.stream().map((item) -> {
-            Long brandId = item.getBrandId();
-            BrandEntity byId = brandService.getById(brandId);
-            return byId;
-        }).collect(Collectors.toList());
-
-        return collect;
+    public List<CategoryBrandRelationEntity> getBrandsByCayId(Long catelogId) {
+        List<CategoryBrandRelationEntity> entities = baseMapper.selectList(
+                new QueryWrapper<CategoryBrandRelationEntity>().eq("catelog_id", catelogId));
+        return entities;
     }
-
 
 }

@@ -5,7 +5,6 @@ import com.uin.esclient.config.EsClientConfig;
 import com.uin.esclient.constant.EsConstant;
 import com.uin.esclient.service.ProductSaveService;
 import com.uin.to.es.SpuEsTO;
-import com.uin.utils.Constant;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -20,8 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
+@Service
 public class ProductSaveServiceImpl implements ProductSaveService {
     @Autowired
     RestHighLevelClient restHighLevelClient;

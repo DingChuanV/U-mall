@@ -1,20 +1,16 @@
 package com.uin.product.app;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.uin.product.entity.BrandEntity;
-import com.uin.product.vo.BrandVo;
+import com.uin.product.entity.CategoryBrandRelationEntity;
+import com.uin.product.service.CategoryBrandRelationService;
 import com.uin.utils.PageUtils;
 import com.uin.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.uin.product.entity.CategoryBrandRelationEntity;
-import com.uin.product.service.CategoryBrandRelationService;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -40,16 +36,9 @@ public class CategoryBrandRelationController {
      * 3.controller接受service处理完的数据，封装成页面指定的VO
      */
     @GetMapping("/brands/list")
-    public R CategoryList(@RequestParam(value = "catId", required = true) Long catId) {
-
-        List<BrandEntity> list = categoryBrandRelationService.getBrandByCatid(catId);
-        List<BrandVo> vos = list.stream().map((item) -> {
-            BrandVo brandVo = new BrandVo();
-            brandVo.setBrandId(item.getBrandId());
-            brandVo.setBrandName(item.getName());
-            return brandVo;
-        }).collect(Collectors.toList());
-        return R.ok().put("data", vos);
+    public R getBrandsByCategory(@RequestParam("catId") Long catelogId) {
+        List<CategoryBrandRelationEntity> entities=categoryBrandRelationService.getBrandsByCayId(catelogId);
+        return R.ok().put("data", entities);
     }
 
     /**
@@ -129,7 +118,6 @@ public class CategoryBrandRelationController {
      */
     public R delete(@RequestBody Long[] ids) {
         categoryBrandRelationService.removeByIds(Arrays.asList(ids));
-
         return R.ok();
     }
 

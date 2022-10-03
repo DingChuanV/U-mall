@@ -10,20 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SpringBootTest
 @Slf4j
 class ProductApplicationTests {
-    @Autowired(required = false)
+    @Autowired
     BrandService brandService;
     @Autowired
     AttrGroupService attrGroupService;
@@ -57,7 +51,6 @@ class ProductApplicationTests {
     public void test03() {
         Long[] catcatelogPath = categoryService.findCatcatelogPath(225L);
         log.info("完整的路径：{}", Arrays.asList(catcatelogPath));
-
     }
 
 

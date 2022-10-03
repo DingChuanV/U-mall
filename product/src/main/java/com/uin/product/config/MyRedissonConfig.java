@@ -25,7 +25,7 @@ public class MyRedissonConfig {
         //1.创建配置对象
         Config config = new Config();
         //单集群模式
-        config.useSingleServer().setAddress("redis://10.100.114.200:6379");
+        config.useSingleServer().setAddress("redis://127.0.0.1:6379");
         //2.根据配置对象创建出RedissonClient实例对象
         RedissonClient redissonClient = Redisson.create(config);
         return redissonClient;

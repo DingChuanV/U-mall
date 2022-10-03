@@ -1,28 +1,26 @@
 package com.uin.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.uin.product.dao.AttrAttrgroupRelationDao;
+import com.uin.product.dao.AttrGroupDao;
 import com.uin.product.entity.AttrEntity;
+import com.uin.product.entity.AttrGroupEntity;
+import com.uin.product.service.AttrGroupService;
 import com.uin.product.service.AttrService;
 import com.uin.product.vo.AttrGroupWithAttrsVo;
+import com.uin.product.vo.itemVo.SpuBaseAttrGroupVo;
 import com.uin.utils.PageUtils;
 import com.uin.utils.Query;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
-
-import com.uin.product.dao.AttrGroupDao;
-import com.uin.product.entity.AttrGroupEntity;
-import com.uin.product.service.AttrGroupService;
-import org.springframework.util.StringUtils;
 
 
 @Service("attrGroupService")
@@ -92,6 +90,23 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
             return attrGroupWithAttrs;
         }).collect(Collectors.toList());
         return collect;
+    }
+
+    /**
+     * 获取spu的规格参数信息
+     *
+     * @param spuId
+     * @param catalogId
+     * @return java.util.List<com.uin.product.vo.SkuItemVo.SpuBaseAttrGroupVo>
+     * @author wanglufei
+     * @date 2022/9/27 4:41 PM
+     */
+    @Override
+    public List<SpuBaseAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long spuId, Long catalogId) {
+        // 1.查出当前spu的对应的所有属性的分组信息以及当前分组下的所有属性对应的值
+        AttrGroupDao attrGroupDao = this.getBaseMapper();
+        List<SpuBaseAttrGroupVo> vos = attrGroupDao.getAttrGroupWithAttrsBySpuId(spuId, catalogId);
+        return vos;
     }
 
 

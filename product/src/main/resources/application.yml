@@ -3,12 +3,13 @@ server:
 
 spring:
   redis:
-    host: 10.100.114.200
+    host: 127.0.0.1
     port: 6379
   thymeleaf:
     cache: false
-  main:
-    allow-circular-references: true
+  mvc:
+    pathmatch:
+      matching-strategy: path_pattern_parser
   datasource:
     username: root
     password: 12345678

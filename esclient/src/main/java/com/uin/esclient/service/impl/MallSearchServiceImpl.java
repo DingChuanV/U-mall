@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MallSearchServiceImpl implements MallSearchService {
     @Autowired
-    private RestHighLevelClient client;
+    private RestHighLevelClient restHighLevelClient;
     @Resource
     ProductFeignService productFeignService;
 
@@ -65,7 +65,7 @@ public class MallSearchServiceImpl implements MallSearchService {
             SearchRequest searchRequest = buildSearchRequest(params);
             // 1.2 执行检索请求
             SearchResponse response = null;
-            response = client.search(searchRequest, EsClientConfig.COMMON_OPTIONS);
+            response = restHighLevelClient.search(searchRequest, EsClientConfig.COMMON_OPTIONS);
             result = buildSearchRequest(response, params);
             return null;
         } catch (IOException e) {

@@ -37,25 +37,25 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     @Autowired
     SpuImagesService spuImagesService;
     @Autowired
-    AttrService attrService;
+    private AttrService attrService;
     @Autowired
-    ProductAttrValueService productAttrValueService;
+    private ProductAttrValueService productAttrValueService;
     @Autowired
-    SkuInfoService skuInfoService;
+    private SkuInfoService skuInfoService;
     @Autowired
-    SkuImagesService skuImagesService;
+    private SkuImagesService skuImagesService;
     @Autowired
-    SkuSaleAttrValueService skuSaleAttrValueService;
+    private SkuSaleAttrValueService skuSaleAttrValueService;
     @Autowired
-    SpuFeignService spuFeignService;
+    private SpuFeignService spuFeignService;
     @Autowired
-    BrandService brandService;
+    private BrandService brandService;
     @Autowired
-    CategoryService categoryService;
+    private CategoryService categoryService;
     @Autowired
-    WareFeignService wareFeignService;
+    private WareFeignService wareFeignService;
     @Autowired
-    SearchFeignService searchFeignService;
+    private SearchFeignService searchFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
